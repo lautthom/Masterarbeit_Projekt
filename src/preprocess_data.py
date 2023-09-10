@@ -4,37 +4,31 @@ import numpy as np
 import matplotlib.pyplot as plt
 import math
 import neurokit2 as nk
-
-
-def make_subdirectory(subjects):
-    try:
-        os.makedirs(f'/home/lautthom/Desktop/processed_data')
-    except FileExistsError as error:
-        print(f'Warning: {error}')
+import pathlib
 
 
 def _save_data_proband(data_eda, data_labels, subject):
-    with open(f'/home/lautthom/Desktop/processed_data/{subject}_eda.npy', 'wb') as file:
+    with open(pathlib.Path(f'src/../data/processed/{subject}_eda.npy'), 'wb') as file:
         np.save(file, data_eda)
-    with open(f'/home/lautthom/Desktop/processed_data/{subject}_labels.npy', 'wb') as file:
+    with open(pathlib.Path(f'src/../data/processed/{subject}_labels.npy'), 'wb') as file:
         np.save(file, data_labels)
 
 
 def save_feature_vectors(feature_vectors):
-    with open('/home/lautthom/Desktop/processed_data/feature_vectors.npy', 'wb') as file:
+    with open(pathlib.Path(f'src/../data/final/feature_vectors.npy'), 'wb') as file:
         np.save(file, feature_vectors)
 
 
 def get_subjects():
-    subjects_df = pd.read_csv('/home/lautthom/Desktop/PartC-Biosignals/samples.csv', sep='\t')
+    subjects_df = pd.read_csv(pathlib.Path('src/../data/raw/PartC-Biosignals/samples.csv'), sep='\t')
     subjects = subjects_df.subject_name.tolist()
     return subjects
 
 
 def get_cut_out_data(subjects):
     for subject in subjects:
-        data = pd.read_csv(f'/home/lautthom/Desktop/PartC-Biosignals/biosignals_raw/{subject}.csv', sep='\t')
-        stimulus_data = pd.read_csv(f'/home/lautthom/Desktop/PartC-Biosignals/stimulus/{subject}.csv', sep='\t')
+        data = pd.read_csv(pathlib.Path(f'src/../data/raw/PartC-Biosignals/biosignals_raw/{subject}.csv'), sep='\t')
+        stimulus_data = pd.read_csv(pathlib.Path(f'src/../data/raw/PartC-Biosignals/stimulus/{subject}.csv'), sep='\t')
 
         data_filtered = data.filter(items=['time', 'gsr'])
 
@@ -81,8 +75,8 @@ def load_data(subjects):
     labels_train = np.empty([0, number_of_samples])
 
     for subject in subjects:
-        subject_data = np.load(f'/home/lautthom/Desktop/processed_data/{subject}_eda.npy')
-        subject_labels = np.load(f'/home/lautthom/Desktop/processed_data/{subject}_labels.npy')
+        subject_data = np.load(pathlib.Path(f'src/../data/processed/{subject}_eda.npy'))
+        subject_labels = np.load(pathlib.Path(f'src/../data/processed/{subject}_labels.npy'))
             
         data_train = np.append(data_train, subject_data, axis=0)
         labels_train = np.append(labels_train, subject_labels, axis=0)
@@ -91,7 +85,7 @@ def load_data(subjects):
 
 
 def load_feature_vectors():
-    return np.load('/home/lautthom/Desktop/processed_data/feature_vectors.npy')
+    return np.load(pathlib.Path(f'src/../data/final/feature_vectors.npy'))
 
 
 def _compute_feature_vector(sample):
@@ -100,17 +94,12 @@ def _compute_feature_vector(sample):
         clean_features = _compute_statistical_descriptors(signals['EDA_Clean'])
         tonic_features = _compute_statistical_descriptors(signals['EDA_Tonic'])
         phasic_features = _compute_statistical_descriptors(signals['EDA_Phasic'])
-    except ValueError:  # neurokit throws ValueError, when EDA signal is flat; since a flat signal does not need to be cleaned and has no phasic component, the existing signal will be used as cleaned and tonic signal, a flat line with value 0 will be used as phasic signal. 
-        fig, ax = plt.subplots()
-        ax.plot(range(8*512), sample)
-        plt.show()
-        
+    except ValueError:  # neurokit throws ValueError, when EDA signal is flat; since a flat signal does not need to be cleaned and has no phasic component, the existing signal will be used as cleaned and tonic signal, a flat line with value 0 will be used as phasic signal.      
         sample = pd.Series(sample)
         clean_features = _compute_statistical_descriptors(sample)
         tonic_features = _compute_statistical_descriptors(sample)
         flat_phasic_signal = pd.Series(0, index = np.arange(8 * 512))
         phasic_features = _compute_statistical_descriptors(flat_phasic_signal)
-
     # mean_peak_amplitude = np.array([[info['SCR_Amplitude'].mean()]])
     # feature_vector = np.concatenate((clean_features, tonic_features, phasic_features, mean_peak_amplitude), axis=1)
     feature_vector = np.concatenate((clean_features, tonic_features, phasic_features), axis=1)

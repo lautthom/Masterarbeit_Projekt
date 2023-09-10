@@ -9,7 +9,7 @@ import feature_rnn_model
 def main():
     no_classes = 2
     classes = (1, 4)
-    preprocess = False
+    preprocess = True
     compute_feature_vectors = True
     
     subjects = preprocess_data.get_subjects()
@@ -17,7 +17,6 @@ def main():
     if preprocess:
         # TODO: make directory structure for projects
         # TODO: file paths using pathlib
-        preprocess_data.make_subdirectory(subjects)
         # TODO: add options for classes, time length, and possible other options
         preprocess_data.get_cut_out_data(subjects)
     data_eda, labels = preprocess_data.load_data(subjects)
