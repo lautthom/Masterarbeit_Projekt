@@ -10,13 +10,12 @@ def main():
     no_classes = 2
     classes = (1, 4)
     preprocess = False
-    compute_feature_vectors = True
+    compute_feature_vectors = False
     
     subjects = preprocess_data.get_subjects()
   
     if preprocess:
-        # TODO: make directory structure for projects
-        # TODO: file paths using pathlib
+        # TODO: update file paths in project and using pathlib
         preprocess_data.make_subdirectory(subjects)
         # TODO: add options for classes, time length, and possible other options
         preprocess_data.get_cut_out_data(subjects)
