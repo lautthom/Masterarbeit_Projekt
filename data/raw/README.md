@@ -1,0 +1,1 @@
+Copy/Move the 'PartC-Biosignals' folder of the BioVid Heat Pain Database in this directory.
