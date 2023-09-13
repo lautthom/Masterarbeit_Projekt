@@ -8,17 +8,20 @@ import feature_rnn_model
 
 
 def main():
-    no_classes = 2
     classes = (1, 4)
-    preprocess = True
-    compute_feature_vectors = True
+    preprocess = False
+    compute_feature_vectors = False
     
     subjects = save_load_data.get_subjects()
   
     if preprocess:
         # TODO: add options for classes, time length, and possible other options
-        preprocess_data.get_cut_out_data(subjects)
-    data_eda, labels = save_load_data.load_data(subjects)
+        data_eda, labels = preprocess_data.get_cut_out_samples_and_labels(subjects)
+        save_load_data.save_samples(data_eda)
+        save_load_data.save_labels(labels)
+    else:
+        data_eda = save_load_data.load_samples()
+        labels = save_load_data.load_labels()
     # TODO: clean EDA data
 
     # TODO: create separate scripts for file management and manipulation of data
@@ -28,7 +31,8 @@ def main():
         print('Computing feature vectors...')
         feature_vectors_eda = preprocess_data.compute_feature_vectors(data_eda)
         save_load_data.save_feature_vectors(feature_vectors_eda)
-    feature_vectors_eda = save_load_data.load_feature_vectors()
+    else:
+        feature_vectors_eda = save_load_data.load_feature_vectors()
     
     time_sequences_feature_vectors = preprocess_data.cut_out_time_sequences(data_eda)
 

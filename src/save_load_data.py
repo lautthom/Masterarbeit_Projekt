@@ -3,11 +3,14 @@ import pathlib
 import numpy as np
 
 
-def save_data_proband(data_eda, data_labels, subject):
-    with open(pathlib.Path(f'src/../data/processed/{subject}_eda.npy'), 'wb') as file:
-        np.save(file, data_eda)
-    with open(pathlib.Path(f'src/../data/processed/{subject}_labels.npy'), 'wb') as file:
-        np.save(file, data_labels)
+def save_samples(samples):
+    with open(pathlib.Path(f'src/../data/processed/eda_samples.npy'), 'wb') as file:
+        np.save(file, samples)
+
+
+def save_labels(labels):
+    with open(pathlib.Path(f'src/../data/processed/labels.npy'), 'wb') as file:
+        np.save(file, labels)
 
 
 def save_feature_vectors(feature_vectors):
@@ -19,6 +22,14 @@ def get_subjects():
     subjects_df = pd.read_csv(pathlib.Path('src/../data/raw/PartC-Biosignals/samples.csv'), sep='\t')
     subjects = subjects_df.subject_name.tolist()
     return subjects
+
+
+def load_samples():
+    return np.load(pathlib.Path(f'src/../data/processed/eda_samples.npy'))
+
+
+def load_labels():
+    return np.load(pathlib.Path(f'src/../data/processed/labels.npy'))
 
 
 def load_data(subjects):  
