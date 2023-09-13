@@ -1,4 +1,5 @@
 import preprocess_data
+import save_load_data
 import numpy as np
 import baseline_models
 import rnn_model
@@ -9,27 +10,15 @@ import feature_rnn_model
 def main():
     no_classes = 2
     classes = (1, 4)
-<<<<<<< HEAD
-    preprocess = False
-    compute_feature_vectors = False
-=======
     preprocess = True
     compute_feature_vectors = True
->>>>>>> fb60c55bedeee12dc447e050fba63c6634e89fb0
     
-    subjects = preprocess_data.get_subjects()
+    subjects = save_load_data.get_subjects()
   
     if preprocess:
-<<<<<<< HEAD
-        # TODO: update file paths in project and using pathlib
-        preprocess_data.make_subdirectory(subjects)
-=======
-        # TODO: make directory structure for projects
-        # TODO: file paths using pathlib
->>>>>>> fb60c55bedeee12dc447e050fba63c6634e89fb0
         # TODO: add options for classes, time length, and possible other options
         preprocess_data.get_cut_out_data(subjects)
-    data_eda, labels = preprocess_data.load_data(subjects)
+    data_eda, labels = save_load_data.load_data(subjects)
     # TODO: clean EDA data
 
     # TODO: create separate scripts for file management and manipulation of data
@@ -38,8 +27,8 @@ def main():
     if compute_feature_vectors:
         print('Computing feature vectors...')
         feature_vectors_eda = preprocess_data.compute_feature_vectors(data_eda)
-        preprocess_data.save_feature_vectors(feature_vectors_eda)
-    feature_vectors_eda = preprocess_data.load_feature_vectors()
+        save_load_data.save_feature_vectors(feature_vectors_eda)
+    feature_vectors_eda = save_load_data.load_feature_vectors()
     
     time_sequences_feature_vectors = preprocess_data.cut_out_time_sequences(data_eda)
 
@@ -47,12 +36,12 @@ def main():
     rnn_accuracies = []
     crnn_accuracies = []
     feature_rnn_accuracies = []
+
+    # TODO: normalize data for deep learning?
  
     # TODO: perform same training/evaluation split for all deep learning models
         # TODO: separate file for deep learning preprocessing?
         # TODO: feature RNN should use same data cutting and feature calculation method as general preprocessing
-
-    # TODO: add multiclass support for NN models
 
     # TODO: add option to save/load models
     # TODO: add options for batch size, learning rate, etc.
