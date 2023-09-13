@@ -100,9 +100,7 @@ def _compute_statistical_descriptors(signal):
 
 
 def compute_feature_vectors(data):
-    number_of_samples = 40
-
-    feature_vectors = np.empty([0, number_of_samples, 36])
+    feature_vectors = np.empty([0, 40, 36])
     for proband in data:
         proband_vector = np.empty([0, 36])
         for sample in proband:
@@ -112,14 +110,14 @@ def compute_feature_vectors(data):
     return feature_vectors
 
 
-def cut_out_time_sequences(data):  
+def compute_time_sequences_feature_vectors(data):  
     complete_time_sequence_features = np.empty([0, 40, 8, 12])
     for proband in data:
         probands_features = np.empty([0, 8, 12])
         for sample in proband:
             features_samples = np.empty([0, 12])
             for i in range(8):
-                features_time_sequence = _compute_statistical_descriptors(pd.Series(sample[i * 512:(i+1) * 512]))
+                features_time_sequence = _compute_statistical_descriptors(pd.Series(sample[i*512 : (i+1)*512]))
                 features_samples = np.append(features_samples, features_time_sequence, axis=0)
             probands_features = np.append(probands_features, np.expand_dims(features_samples, axis=0), axis=0)
         complete_time_sequence_features = np.append(complete_time_sequence_features, np.expand_dims(probands_features, axis=0), axis=0)

@@ -16,10 +16,12 @@ def main():
   
     if preprocess:
         # TODO: add options for classes, time length, and possible other options
+        print('Getting data and cutting out samples...')
         data_eda, labels = preprocess_data.get_cut_out_samples_and_labels(subjects)
         save_load_data.save_samples(data_eda)
         save_load_data.save_labels(labels)
     else:
+        print('Loading data...')
         data_eda = save_load_data.load_samples()
         labels = save_load_data.load_labels()
     # TODO: clean EDA data
@@ -31,11 +33,14 @@ def main():
         print('Computing feature vectors...')
         feature_vectors_eda = preprocess_data.compute_feature_vectors(data_eda)
         save_load_data.save_feature_vectors(feature_vectors_eda)
+        time_sequences_feature_vectors = preprocess_data.compute_time_sequences_feature_vectors(data_eda)
+        save_load_data.save_time_sequences_feature_vectors(time_sequences_feature_vectors)
     else:
+        print('Loading feature vectors...')
         feature_vectors_eda = save_load_data.load_feature_vectors()
+        time_sequences_feature_vectors = save_load_data.load_time_sequences_feature_vectors()
     
-    time_sequences_feature_vectors = preprocess_data.cut_out_time_sequences(data_eda)
-
+    
     random_forest_accuracies = []
     rnn_accuracies = []
     crnn_accuracies = []
