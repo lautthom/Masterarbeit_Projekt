@@ -7,16 +7,11 @@ import crnn_model
 import feature_rnn_model
 
 
-def main():
-    classes = (1, 4)
-    preprocess = False
-    compute_feature_vectors = False
-    
-    subjects = save_load_data.get_subjects()
-  
+def get_data(subjects, preprocess, compute_feature_vectors):
     if preprocess:
         # TODO: add options for classes, time length, and possible other options
         print('Getting data and cutting out samples...')
+        
         data_eda, labels = preprocess_data.get_cut_out_samples_and_labels(subjects)
         save_load_data.save_samples(data_eda)
         save_load_data.save_labels(labels)
@@ -39,7 +34,18 @@ def main():
         print('Loading feature vectors...')
         feature_vectors_eda = save_load_data.load_feature_vectors()
         time_sequences_feature_vectors = save_load_data.load_time_sequences_feature_vectors()
+
+    return data_eda, labels, feature_vectors_eda, time_sequences_feature_vectors
+
+
+def main():
+    classes = (1, 4)
+    preprocess = False
+    compute_feature_vectors = False
     
+    subjects = save_load_data.get_subjects()
+    
+    data_eda, labels, feature_vectors_eda, time_sequences_feature_vectors = get_data(subjects, preprocess, compute_feature_vectors)
     
     random_forest_accuracies = []
     rnn_accuracies = []
