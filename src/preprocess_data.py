@@ -54,19 +54,20 @@ def get_cut_out_samples_and_labels(subjects):
     return samples, labels
 
 
+def process_eda_signal(sample):
+    try: 
+        signals, info = nk.eda_process(sample, sampling_rate=50)
+        return signals['EDA_Clean'].to_numpy(), signals['EDA_Tonic'].to_numpy(), signals['EDA_Phasic'].to_numpy()
+    except ValueError:  # neurokit throws ValueError, when EDA signal is flat; since a flat signal does not need to be cleaned and has no phasic component, the existing signal will be used as cleaned and tonic signal, a flat line with value 0 will be used as phasic signal.
+        return sample, sample, np.zeros([8 * 512])
+    
 
 def _compute_feature_vector(sample):
-    try:
-        signals, info = nk.eda_process(sample, sampling_rate=50)
-        clean_features = _compute_statistical_descriptors(signals['EDA_Clean'])
-        tonic_features = _compute_statistical_descriptors(signals['EDA_Tonic'])
-        phasic_features = _compute_statistical_descriptors(signals['EDA_Phasic'])
-    except ValueError:  # neurokit throws ValueError, when EDA signal is flat; since a flat signal does not need to be cleaned and has no phasic component, the existing signal will be used as cleaned and tonic signal, a flat line with value 0 will be used as phasic signal.      
-        sample = pd.Series(sample)
-        clean_features = _compute_statistical_descriptors(sample)
-        tonic_features = _compute_statistical_descriptors(sample)
-        flat_phasic_signal = pd.Series(0, index = np.arange(8 * 512))
-        phasic_features = _compute_statistical_descriptors(flat_phasic_signal)
+    clean_signal, tonic_signal, phasic_signal = process_eda_signal(sample)
+
+    clean_features = _compute_statistical_descriptors(pd.Series(clean_signal))
+    tonic_features = _compute_statistical_descriptors(pd.Series(tonic_signal))
+    phasic_features = _compute_statistical_descriptors(pd.Series(phasic_signal))
     # mean_peak_amplitude = np.array([[info['SCR_Amplitude'].mean()]])
     # feature_vector = np.concatenate((clean_features, tonic_features, phasic_features, mean_peak_amplitude), axis=1)
     feature_vector = np.concatenate((clean_features, tonic_features, phasic_features), axis=1)
