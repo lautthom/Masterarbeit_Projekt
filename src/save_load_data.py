@@ -8,6 +8,11 @@ def save_samples(samples):
         np.save(file, samples)
 
 
+def save_samples_normalized(samples):
+    with open(pathlib.Path(f'src/../data/processed/eda_samples_normalized.npy'), 'wb') as file:
+        np.save(file, samples)
+
+
 def save_labels(labels):
     with open(pathlib.Path(f'src/../data/processed/labels.npy'), 'wb') as file:
         np.save(file, labels)
@@ -32,6 +37,9 @@ def get_subjects():
 def load_samples():
     return np.load(pathlib.Path(f'src/../data/processed/eda_samples.npy'))
 
+
+def load_samples_normalized():
+    return np.load(pathlib.Path(f'src/../data/processed/eda_samples_normalized.npy'))
 
 def load_labels():
     return np.load(pathlib.Path(f'src/../data/processed/labels.npy'))

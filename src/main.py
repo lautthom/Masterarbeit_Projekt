@@ -5,23 +5,26 @@ import baseline_models
 import rnn_model
 import crnn_model
 import feature_rnn_model
+import sklearn
 
 
 def get_data(subjects, preprocess, compute_feature_vectors):
     if preprocess:
         # TODO: add options for classes, time length, and possible other options
         print('Getting data and cutting out samples...')
-        
         data_eda, labels = preprocess_data.get_cut_out_samples_and_labels(subjects)
+        data_eda_normalized = data_eda.copy()
+        data_eda_normalized = data_eda_normalized / np.max(data_eda_normalized)
         save_load_data.save_samples(data_eda)
+        save_load_data.save_samples_normalized(data_eda_normalized)
         save_load_data.save_labels(labels)
     else:
         print('Loading data...')
         data_eda = save_load_data.load_samples()
+        data_eda_normalized = save_load_data.load_samples_normalized()
         labels = save_load_data.load_labels()
     # TODO: clean EDA data
 
-    # TODO: create separate scripts for file management and manipulation of data
     # TODO: add all (correct) feature for feature vectors
     # TODO: check if feature vectors can be calculated faster (multithreading, applying functions to arrays without for-loop, etc.)
     if compute_feature_vectors:
@@ -35,13 +38,13 @@ def get_data(subjects, preprocess, compute_feature_vectors):
         feature_vectors_eda = save_load_data.load_feature_vectors()
         time_sequences_feature_vectors = save_load_data.load_time_sequences_feature_vectors()
 
-    return data_eda, labels, feature_vectors_eda, time_sequences_feature_vectors
+    return data_eda_normalized, labels, feature_vectors_eda, time_sequences_feature_vectors
 
 
 def main():
     classes = (1, 4)
     preprocess = False
-    compute_feature_vectors = False
+    compute_feature_vectors = True
     
     subjects = save_load_data.get_subjects()
     
@@ -51,12 +54,6 @@ def main():
     rnn_accuracies = []
     crnn_accuracies = []
     feature_rnn_accuracies = []
-
-    # TODO: normalize data for deep learning?
- 
-    # TODO: perform same training/evaluation split for all deep learning models
-        # TODO: separate file for deep learning preprocessing?
-        # TODO: feature RNN should use same data cutting and feature calculation method as general preprocessing
 
     # TODO: add option to save/load models
     # TODO: add options for batch size, learning rate, etc.
@@ -83,6 +80,9 @@ def main():
         feature_vectors_training = feature_vectors_training.reshape((86 * 40, 36))
         sequence_feature_vectors_training = sequence_feature_vectors_training.reshape((86 * 40, 8, 12))
         labels_training = labels_training.ravel()
+
+        data_training, feature_vectors_training, sequence_feature_vectors_training, labels_training = sklearn.utils.shuffle(data_training, feature_vectors_training, sequence_feature_vectors_training, labels_training)
+        data_test, feature_vectors_test, sequence_feature_vectors_test, labels_test = sklearn.utils.shuffle(data_test, feature_vectors_test, sequence_feature_vectors_test, labels_test)
 
         accuracy_forest = baseline_models.random_forest_model(feature_vectors_training, labels_training, feature_vectors_test, labels_test)
         print(f'Random Forest Accuracy: {accuracy_forest}')
