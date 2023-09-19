@@ -6,6 +6,7 @@ import rnn_model
 import crnn_model
 import feature_rnn_model
 import sklearn
+import cnn_model
 
 
 def get_data(subjects, preprocess, compute_feature_vectors):
@@ -13,6 +14,7 @@ def get_data(subjects, preprocess, compute_feature_vectors):
         # TODO: add options for classes, time length, and possible other options
         print('Getting data and cutting out samples...')
         data_eda, labels = preprocess_data.get_cut_out_samples_and_labels(subjects)
+        #### data_eda_normalized doesn't work!!!
         data_eda_normalized = data_eda.copy()
         data_eda_normalized = data_eda_normalized / np.max(data_eda_normalized)
         save_load_data.save_samples(data_eda)
@@ -38,13 +40,14 @@ def get_data(subjects, preprocess, compute_feature_vectors):
         feature_vectors_eda = save_load_data.load_feature_vectors()
         time_sequences_feature_vectors = save_load_data.load_time_sequences_feature_vectors()
 
-    return data_eda_normalized, labels, feature_vectors_eda, time_sequences_feature_vectors
+    #### data_eda_normalized doesn't work!!!
+    return data_eda, labels, feature_vectors_eda, time_sequences_feature_vectors
 
 
 def main():
     classes = (1, 4)
     preprocess = False
-    compute_feature_vectors = True
+    compute_feature_vectors = False
     
     subjects = save_load_data.get_subjects()
     
@@ -54,6 +57,7 @@ def main():
     rnn_accuracies = []
     crnn_accuracies = []
     feature_rnn_accuracies = []
+    cnn_accuracies = []
 
     # TODO: add option to save/load models
     # TODO: add options for batch size, learning rate, etc.
@@ -76,7 +80,7 @@ def main():
         feature_vectors_training = np.delete(feature_vectors_eda, np.s_[index], 0)
         sequence_feature_vectors_training = np.delete(time_sequences_feature_vectors, np.s_[index], 0)
         labels_training = np.delete(labels, np.s_[index], 0)
-        data_training = data_training.reshape((86 * 40, 4096))
+        data_training = data_training.reshape((86 * 40, 6144))
         feature_vectors_training = feature_vectors_training.reshape((86 * 40, 36))
         sequence_feature_vectors_training = sequence_feature_vectors_training.reshape((86 * 40, 8, 12))
         labels_training = labels_training.ravel()
@@ -88,17 +92,21 @@ def main():
         print(f'Random Forest Accuracy: {accuracy_forest}')
         random_forest_accuracies.append(accuracy_forest)
 
-        accuracy_rnn = rnn_model.run_model(data_training, labels_training, data_test, labels_test)
-        print(f'RNN Model Accuracy: {accuracy_rnn}')
-        rnn_accuracies.append(accuracy_rnn)
+        # accuracy_rnn = rnn_model.run_model(data_training, labels_training, data_test, labels_test)
+        # print(f'RNN Model Accuracy: {accuracy_rnn}')
+        # rnn_accuracies.append(accuracy_rnn)
 
-        accuracy_crnn = crnn_model.run_model(data_training, labels_training, data_test, labels_test)
-        print(f'CRNN Model Accuracy: {accuracy_crnn}')
-        crnn_accuracies.append(accuracy_crnn)
+        # accuracy_crnn = crnn_model.run_model(data_training, labels_training, data_test, labels_test)
+        # print(f'CRNN Model Accuracy: {accuracy_crnn}')
+        # crnn_accuracies.append(accuracy_crnn)
 
-        accuracy_feature_rnn = feature_rnn_model.run_model(sequence_feature_vectors_training, labels_training, sequence_feature_vectors_test, labels_test)
-        print(f'Feature RNN Model Accuracy: {accuracy_feature_rnn}')
-        feature_rnn_accuracies.append(accuracy_feature_rnn)
+        # accuracy_feature_rnn = feature_rnn_model.run_model(sequence_feature_vectors_training, labels_training, sequence_feature_vectors_test, labels_test)
+        # print(f'Feature RNN Model Accuracy: {accuracy_feature_rnn}')
+        # feature_rnn_accuracies.append(accuracy_feature_rnn)
+
+        accuracy_cnn = cnn_model.run_model(data_training, labels_training, data_test, labels_test)
+        print(f'CNN Model Accuracy: {accuracy_cnn}')
+        cnn_accuracies.append(accuracy_cnn)
         print(' ')
     
     # TODO: implement confusion matrix for results
@@ -106,6 +114,8 @@ def main():
     print(f'Mean RNN model Accuracy: {sum(rnn_accuracies) / len(rnn_accuracies):.4f}')
     print(f'Mean CRNN model Accuracy: {sum(crnn_accuracies) / len(crnn_accuracies):.4f}')
     print(f'Mean feature RNN model Accuracy: {sum(feature_rnn_accuracies) / len(feature_rnn_accuracies):.4f}')
+    print(f'Mean CNN model Accuracy: {sum(cnn_accuracies) / len(cnn_accuracies):.4f}')
+
 
     for accuracy in rnn_accuracies:
         print(accuracy)
