@@ -2,11 +2,8 @@ import preprocess_data
 import save_load_data
 import numpy as np
 import baseline_models
-import rnn_model
-import crnn_model
-import feature_rnn_model
 import sklearn
-import cnn_model
+import deep_model
 
 
 def get_data(subjects, preprocess, compute_feature_vectors):
@@ -61,10 +58,7 @@ def main():
 
     # TODO: add option to save/load models
     # TODO: add options for batch size, learning rate, etc.
-
-    # TODO: implement CRNN/RNN model in one file (possibly also feature RNN model)?
     
-    # TODO: add CNN model?
     # TODO: add GRU unit for RNN models?
 
     # TODO: check if RNN model is correct
@@ -92,33 +86,29 @@ def main():
         print(f'Random Forest Accuracy: {accuracy_forest}')
         random_forest_accuracies.append(accuracy_forest)
 
-        # accuracy_rnn = rnn_model.run_model(data_training, labels_training, data_test, labels_test)
-        # print(f'RNN Model Accuracy: {accuracy_rnn}')
-        # rnn_accuracies.append(accuracy_rnn)
+        accuracy_rnn = deep_model.run_model('rnn', data_training, labels_training, data_test, labels_test)
+        print(f'RNN Model Accuracy: {accuracy_rnn}')
+        rnn_accuracies.append(accuracy_rnn)
 
-        # accuracy_crnn = crnn_model.run_model(data_training, labels_training, data_test, labels_test)
+        # accuracy_crnn = deep_model.run_model('crnn', data_training, labels_training, data_test, labels_test)
         # print(f'CRNN Model Accuracy: {accuracy_crnn}')
         # crnn_accuracies.append(accuracy_crnn)
 
-        # accuracy_feature_rnn = feature_rnn_model.run_model(sequence_feature_vectors_training, labels_training, sequence_feature_vectors_test, labels_test)
+        # accuracy_feature_rnn = deep_model.run_model('feature_rnn', sequence_feature_vectors_training, labels_training, sequence_feature_vectors_test, labels_test)
         # print(f'Feature RNN Model Accuracy: {accuracy_feature_rnn}')
         # feature_rnn_accuracies.append(accuracy_feature_rnn)
 
-        accuracy_cnn = cnn_model.run_model(data_training, labels_training, data_test, labels_test)
-        print(f'CNN Model Accuracy: {accuracy_cnn}')
-        cnn_accuracies.append(accuracy_cnn)
+        # accuracy_cnn = deep_model.run_model('cnn', data_training, labels_training, data_test, labels_test)
+        # print(f'CNN Model Accuracy: {accuracy_cnn}')
+        # cnn_accuracies.append(accuracy_cnn)
         print(' ')
     
     # TODO: implement confusion matrix for results
     print(f'Mean Random Forest model Accuracy: {sum(random_forest_accuracies) / len(random_forest_accuracies):.4f}')
-    print(f'Mean RNN model Accuracy: {sum(rnn_accuracies) / len(rnn_accuracies):.4f}')
-    print(f'Mean CRNN model Accuracy: {sum(crnn_accuracies) / len(crnn_accuracies):.4f}')
-    print(f'Mean feature RNN model Accuracy: {sum(feature_rnn_accuracies) / len(feature_rnn_accuracies):.4f}')
+    # print(f'Mean RNN model Accuracy: {sum(rnn_accuracies) / len(rnn_accuracies):.4f}')
+    # print(f'Mean CRNN model Accuracy: {sum(crnn_accuracies) / len(crnn_accuracies):.4f}')
+    # print(f'Mean feature RNN model Accuracy: {sum(feature_rnn_accuracies) / len(feature_rnn_accuracies):.4f}')
     print(f'Mean CNN model Accuracy: {sum(cnn_accuracies) / len(cnn_accuracies):.4f}')
-
-
-    for accuracy in rnn_accuracies:
-        print(accuracy)
         
 
 
