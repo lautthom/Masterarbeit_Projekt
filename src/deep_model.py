@@ -12,29 +12,29 @@ def run_evaluation(model, dataloader, device, show_confusion_matrix=False):
     model.eval()
 
     predictions = []
-    true_labels = []
+    labels_evaluation = []
     with torch.no_grad():
-        for data, label in dataloader:
+        for data, labels in dataloader:
             data = data.to(device, dtype=torch.float32)
 
-            prediction = model(data, device)
+            outputs = model(data, device)
 
-            for entry, true_label in zip(prediction, label):
-                prediction = 1 if entry >= 0.5 else 0
+            for output, label in zip(outputs, labels):
+                prediction = 1 if output >= 0.5 else 0
                 predictions.append(prediction)
-                true_labels.append(true_label.item())
+                labels_evaluation.append(label.item())
     model.train()
 
     if show_confusion_matrix:
-        ConfusionMatrixDisplay.from_predictions(true_labels, predictions)
+        ConfusionMatrixDisplay.from_predictions(labels_evaluation, predictions)
         plt.show()
 
-    return accuracy_score(true_labels, predictions)
+    return accuracy_score(labels_evaluation, predictions)
 
 
 def run_model(model, data_train, labels_train, data_test, labels_test, batch_size, show_confusion_matrix=False):
     device = 'cuda' if torch.cuda.is_available() else 'cpu'
-    #print(f'Using {device} device')
+    print(f'Using {device} device')
 
     labels_train_copy = labels_train.copy()
     labels_test_copy = labels_test.copy()
@@ -43,12 +43,7 @@ def run_model(model, data_train, labels_train, data_test, labels_test, batch_siz
     labels_test_relabeled = deep_learning_utils.relabel(labels_test_copy)
     
     if model == 'rnn':
-        print(data_train.shape)
-        #data_train = data_train[:, 512*4:]
-        print(data_train.shape)
         data_train = get_means(data_train)
-        print(data_train.shape)
-        #data_test = data_test[:,512*4:]
         data_test = get_means(data_test)
 
         data_train = np.expand_dims(data_train, axis=2)
@@ -84,6 +79,9 @@ def run_model(model, data_train, labels_train, data_test, labels_test, batch_siz
 
     for i in range(300):
         loss_epoch = 0
+        
+        predictions_epoch = []
+        labels_epoch = []
 
         for index, (data, labels) in enumerate(train_dataloader):
             data = data.to(device, dtype=torch.float32)
@@ -100,8 +98,13 @@ def run_model(model, data_train, labels_train, data_test, labels_test, batch_siz
 
             loss_epoch += loss.item() 
 
+            for output, label in zip(outputs, labels):
+                prediction = 1 if output >= 0.5 else 0
+                predictions_epoch.append(prediction)
+                labels_epoch.append(label.item())
+
         #No additional run needed for train_accuracy       
-        train_accuracy = run_evaluation(net, train_dataloader, device) 
+        train_accuracy = accuracy_score(labels_epoch, predictions_epoch)
         eval_accuracy = run_evaluation(net, eval_dataloader, device)
 
         train_accuracies.append(train_accuracy)
