@@ -45,6 +45,7 @@ def main():
     classes = (1, 4)
     preprocess = False
     compute_feature_vectors = False
+    batch_size=40
     
     subjects = save_load_data.get_subjects()
     
@@ -60,8 +61,6 @@ def main():
     # TODO: add options for batch size, learning rate, etc.
     
     # TODO: add GRU unit for RNN models?
-
-    # TODO: check if RNN model is correct
 
     for index, (proband_data, proband_feature_vectors, proband_sequence_feature_vectors, proband_labels, proband_name) in enumerate(zip(data_eda, feature_vectors_eda, time_sequences_feature_vectors, labels, subjects)):
         print(f'Current proband: {proband_name}')
@@ -86,19 +85,19 @@ def main():
         print(f'Random Forest Accuracy: {accuracy_forest}')
         random_forest_accuracies.append(accuracy_forest)
 
-        accuracy_rnn = deep_model.run_model('rnn', data_training, labels_training, data_test, labels_test)
+        accuracy_rnn = deep_model.run_model('rnn', data_training, labels_training, data_test, labels_test, batch_size)
         print(f'RNN Model Accuracy: {accuracy_rnn}')
         rnn_accuracies.append(accuracy_rnn)
 
-        # accuracy_crnn = deep_model.run_model('crnn', data_training, labels_training, data_test, labels_test)
+        # accuracy_crnn = deep_model.run_model('crnn', data_training, labels_training, data_test, labels_test, batch_size)
         # print(f'CRNN Model Accuracy: {accuracy_crnn}')
         # crnn_accuracies.append(accuracy_crnn)
 
-        # accuracy_feature_rnn = deep_model.run_model('feature_rnn', sequence_feature_vectors_training, labels_training, sequence_feature_vectors_test, labels_test)
+        # accuracy_feature_rnn = deep_model.run_model('feature_rnn', sequence_feature_vectors_training, labels_training, sequence_feature_vectors_test, labels_test, batch_size)
         # print(f'Feature RNN Model Accuracy: {accuracy_feature_rnn}')
         # feature_rnn_accuracies.append(accuracy_feature_rnn)
 
-        # accuracy_cnn = deep_model.run_model('cnn', data_training, labels_training, data_test, labels_test)
+        # accuracy_cnn = deep_model.run_model('cnn', data_training, labels_training, data_test, labels_test, batch_size)
         # print(f'CNN Model Accuracy: {accuracy_cnn}')
         # cnn_accuracies.append(accuracy_cnn)
         print(' ')

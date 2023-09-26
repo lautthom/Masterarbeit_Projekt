@@ -32,7 +32,7 @@ def run_evaluation(model, dataloader, device, show_confusion_matrix=False):
     return accuracy_score(true_labels, predictions)
 
 
-def run_model(model, data_train, labels_train, data_test, labels_test, show_confusion_matrix=False):
+def run_model(model, data_train, labels_train, data_test, labels_test, batch_size, show_confusion_matrix=False):
     device = 'cuda' if torch.cuda.is_available() else 'cpu'
     #print(f'Using {device} device')
 
@@ -63,14 +63,14 @@ def run_model(model, data_train, labels_train, data_test, labels_test, show_conf
     data_train, data_eval = np.split(data_train, [int(((len(data_train) // 40) * 0.8)) * 40])
     labels_train_relabeled, labels_eval = np.split(labels_train_relabeled, [int(((len(labels_train_relabeled) // 40) * 0.8)) * 40])
 
-    train_dataloader = deep_learning_utils.make_dataloader(data_train, labels_train_relabeled)
-    eval_dataloader = deep_learning_utils.make_dataloader(data_eval, labels_eval)
-    test_dataloader = deep_learning_utils.make_dataloader(data_test, labels_test)
+    train_dataloader = deep_learning_utils.make_dataloader(data_train, labels_train_relabeled, batch_size)
+    eval_dataloader = deep_learning_utils.make_dataloader(data_eval, labels_eval, batch_size)
+    test_dataloader = deep_learning_utils.make_dataloader(data_test, labels_test, batch_size)
 
     if model == 'cnn':
         net = deep_learning_architectures.CNN().to(device)
     elif model == 'rnn':
-        net = deep_learning_architectures.RNN().to(device)
+        net = deep_learning_architectures.RNN(hidden_dim=64, batch_size=batch_size, num_layers=2).to(device)
     elif model == 'crnn':
         net = deep_learning_architectures.CRNN().to(device)
     elif model == 'feature_rnn':

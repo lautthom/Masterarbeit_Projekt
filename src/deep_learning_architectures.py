@@ -26,19 +26,23 @@ class CNN(nn.Module):
     
 
 class RNN(nn.Module):
-    def __init__(self):
+    def __init__(self, hidden_dim, batch_size, num_layers):
         super(RNN, self).__init__()
-        self.lstm = nn.LSTM(input_size=1, hidden_size=64, num_layers=2, batch_first=True, bidirectional=True)
-        self.gru = nn.GRU(input_size=1, hidden_size=64, num_layers=2, batch_first=True)
+        self.lstm = nn.LSTM(input_size=1, hidden_size=hidden_dim, num_layers=num_layers, batch_first=True, bidirectional=True)
+        self.gru = nn.GRU(input_size=1, hidden_size=hidden_dim, num_layers=num_layers, batch_first=True)
         self.fc = nn.Linear(256, 10)
         self.output = nn.Linear(10, 1)
 
         self.relu = nn.ReLU()
         self.sigmoid = nn.Sigmoid()
 
+        self.hidden_dim = hidden_dim
+        self.batch_size = batch_size
+        self.num_layers = num_layers
+
     def forward(self, x, device):
-        h0 = torch.zeros(4, 20, 64).requires_grad_()
-        c0 = torch.zeros(4, 20, 64).requires_grad_()
+        h0 = torch.zeros(self.num_layers * 2, self.batch_size, self.hidden_dim).requires_grad_()
+        c0 = torch.zeros(self.num_layers * 2, self.batch_size, self.hidden_dim).requires_grad_()
         h0 = h0.to(device)
         c0 = c0.to(device)
         
