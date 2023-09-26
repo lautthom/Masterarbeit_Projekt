@@ -29,7 +29,7 @@ class RNN(nn.Module):
     def __init__(self, hidden_dim, batch_size, num_layers):
         super(RNN, self).__init__()
         self.lstm = nn.LSTM(input_size=1, hidden_size=hidden_dim, num_layers=num_layers, batch_first=True, bidirectional=True)
-        self.gru = nn.GRU(input_size=1, hidden_size=hidden_dim, num_layers=num_layers, batch_first=True)
+        self.gru = nn.GRU(input_size=1, hidden_size=hidden_dim, num_layers=num_layers, batch_first=True, bidirectional=True)
         self.fc = nn.Linear(256, 10)
         self.output = nn.Linear(10, 1)
 
@@ -46,8 +46,8 @@ class RNN(nn.Module):
         h0 = h0.to(device)
         c0 = c0.to(device)
         
-        x, (h_n, c_n) = self.lstm(x, (h0.detach(), c0.detach()))
-        #x, _ = self.gru(x, h0)
+        #x, (h_n, c_n) = self.lstm(x, (h0.detach(), c0.detach()))
+        x, h_n = self.gru(x, h0)
         
         last_hidden_states = torch.permute(h_n, (1, 0, 2))
         last_hidden_states = torch.flatten(last_hidden_states, start_dim=1)
