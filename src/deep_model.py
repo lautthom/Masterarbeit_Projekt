@@ -67,6 +67,7 @@ def run_model(model, data_train, labels_train, data_test, labels_test, batch_siz
     eval_dataloader = deep_learning_utils.make_dataloader(data_eval, labels_eval, batch_size)
     test_dataloader = deep_learning_utils.make_dataloader(data_test, labels_test, batch_size)
 
+    # include permute here instead of in forward pass, reducing time permute is needed?
     if model == 'cnn':
         net = deep_learning_architectures.CNN().to(device)
     elif model == 'rnn':
@@ -74,7 +75,7 @@ def run_model(model, data_train, labels_train, data_test, labels_test, batch_siz
     elif model == 'crnn':
         net = deep_learning_architectures.CRNN(hidden_dim=128, num_layers=2).to(device)
     elif model == 'feature_rnn':
-        net = deep_learning_architectures.FeatureRNN().to(device)
+        net = deep_learning_architectures.FeatureRNN(hidden_dim=128, num_layers=2).to(device)
 
     criterion = nn.BCELoss()
     optimizer = optim.SGD(net.parameters(), lr=0.1)  # reduce lr during epochs

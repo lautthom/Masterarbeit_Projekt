@@ -90,25 +90,30 @@ class CRNN(nn.Module):
     
 
 class FeatureRNN(nn.Module):
-    def __init__(self):
+    def __init__(self, hidden_dim, num_layers):
         super(FeatureRNN, self).__init__()
-        self.lstm = nn.LSTM(input_size=12, hidden_size=128, num_layers=2, batch_first=True)
-        self.gru = nn.GRU(input_size=12, hidden_size=128, num_layers=2, batch_first=True)
-        self.fc = nn.Linear(128, 10)
+        self.lstm = nn.LSTM(input_size=12, hidden_size=hidden_dim, num_layers=num_layers, batch_first=True, bidirectional=True)
+        self.gru = nn.GRU(input_size=12, hidden_size=hidden_dim, num_layers=num_layers, batch_first=True, bidirectional=True)
+        self.fc = nn.Linear(hidden_dim * num_layers * 2, 10)
         self.output = nn.Linear(10, 1)
 
         self.relu = nn.ReLU()
         self.sigmoid = nn.Sigmoid()
 
+        self.hidden_dim = hidden_dim
+        self.num_layers = num_layers
+
     def forward(self, x, device):
-        h0 = torch.zeros(2, 20, 128).requires_grad_()
+        h0 = torch.zeros(self.num_layers * 2, x.shape[0], self.hidden_dim).requires_grad_()
         h0 = h0.to(device)
-        c0 = torch.zeros(2, 20, 128).requires_grad_()
+        c0 = torch.zeros(self.num_layers * 2, x.shape[0], self.hidden_dim).requires_grad_()
         c0 = c0.to(device)
         
-        x, _ = self.lstm(x, (h0.detach(), c0.detach()))
-        #x, _ = self.gru(x, h0.detach())
-        x = self.relu(self.fc(x[:, -1, :]))
+        x, (h_n, c_n) = self.lstm(x, (h0.detach(), c0.detach()))
+        #x, h_n = self.gru(x, h0.detach())
+        last_hidden_states = torch.permute(h_n, (1, 0, 2))
+        last_hidden_states_flattened = torch.flatten(last_hidden_states, start_dim=1)
+        x = self.relu(self.fc(last_hidden_states_flattened))
         x = self.sigmoid(self.output(x))
         return x
     
