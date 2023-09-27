@@ -32,7 +32,18 @@ def run_evaluation(model, dataloader, device, show_confusion_matrix=False):
     return accuracy_score(labels_evaluation, predictions)
 
 
-def run_model(model, data_train, labels_train, data_test, labels_test, batch_size, show_confusion_matrix=False):
+def get_means(data):  
+    complete_means = np.empty([0, 32*8, 3])
+    for sample in data:
+        means = np.empty([0, 3])
+        for i in range(8*32):
+            mean = np.mean(sample[i*16:(i+1)*16], axis=0)
+            means = np.append(means, np.expand_dims(mean, axis=0), axis=0)
+        complete_means = np.append(complete_means, np.expand_dims(means, axis=0), axis=0)
+    return complete_means
+
+
+def run_model(model, data_train, labels_train, data_test, labels_test, batch_size, show_confusion_matrix=False, show_training_plot=False):
     device = 'cuda' if torch.cuda.is_available() else 'cpu'
     print(f'Using {device} device')
 
@@ -42,15 +53,9 @@ def run_model(model, data_train, labels_train, data_test, labels_test, batch_siz
     labels_train_relabeled = deep_learning_utils.relabel(labels_train_copy)
     labels_test_relabeled = deep_learning_utils.relabel(labels_test_copy)
     
-    if model == 'rnn':
+    if not model == 'feature_rnn':
         data_train = get_means(data_train)
         data_test = get_means(data_test)
-
-        data_train = np.expand_dims(data_train, axis=2)
-        data_test = np.expand_dims(data_test, axis=2)
-    elif not model == 'feature_rnn':
-        data_train = np.expand_dims(data_train, axis=1)
-        data_test = np.expand_dims(data_test, axis=1)
 
     labels_train_relabeled = np.expand_dims(labels_train_relabeled, axis=1)
     labels_test = np.expand_dims(labels_test_relabeled, axis=1)
@@ -83,7 +88,7 @@ def run_model(model, data_train, labels_train, data_test, labels_test, batch_siz
         predictions_epoch = []
         labels_epoch = []
 
-        for index, (data, labels) in enumerate(train_dataloader):
+        for data, labels in train_dataloader:
             data = data.to(device, dtype=torch.float32)
             labels = labels.to(device, dtype=torch.float32)
 
@@ -92,7 +97,6 @@ def run_model(model, data_train, labels_train, data_test, labels_test, batch_siz
             outputs = net(data, device)
 
             loss = criterion(outputs, labels)
-            #updating after batch or after epoch? 
             loss.backward()
             optimizer.step()
 
@@ -102,8 +106,7 @@ def run_model(model, data_train, labels_train, data_test, labels_test, batch_siz
                 prediction = 1 if output >= 0.5 else 0
                 predictions_epoch.append(prediction)
                 labels_epoch.append(label.item())
-
-        #No additional run needed for train_accuracy       
+ 
         train_accuracy = accuracy_score(labels_epoch, predictions_epoch)
         eval_accuracy = run_evaluation(net, eval_dataloader, device)
 
@@ -112,7 +115,7 @@ def run_model(model, data_train, labels_train, data_test, labels_test, batch_siz
             
         print(f'Epoch: {i}, Loss: {loss_epoch:.2f}, Train accuracy: {train_accuracy:.3f}, Eval accuracy: {eval_accuracy:.3f}')
     
-    if show_confusion_matrix:
+    if show_training_plot:
         deep_learning_utils.make_training_plot(train_accuracies, eval_accuracies)
     
     test_accuracy = run_evaluation(net, test_dataloader, device, show_confusion_matrix=show_confusion_matrix)
@@ -120,12 +123,3 @@ def run_model(model, data_train, labels_train, data_test, labels_test, batch_siz
     return test_accuracy
 
 
-def get_means(data):  
-    complete_means = np.empty([0, 32*8])
-    for sample in data:
-        means = np.empty([0])
-        for i in range(8*32):
-            mean = np.mean(sample[i*16 : (i+1)*16])
-            means = np.append(means, [mean], axis=0)
-        complete_means = np.append(complete_means, np.expand_dims(means, axis=0), axis=0)
-    return complete_means

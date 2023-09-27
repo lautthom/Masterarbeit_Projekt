@@ -28,8 +28,8 @@ class CNN(nn.Module):
 class RNN(nn.Module):
     def __init__(self, hidden_dim, batch_size, num_layers):
         super(RNN, self).__init__()
-        self.lstm = nn.LSTM(input_size=1, hidden_size=hidden_dim, num_layers=num_layers, batch_first=True, bidirectional=True)
-        self.gru = nn.GRU(input_size=1, hidden_size=hidden_dim, num_layers=num_layers, batch_first=True, bidirectional=True)
+        self.lstm = nn.LSTM(input_size=3, hidden_size=hidden_dim, num_layers=num_layers, batch_first=True, bidirectional=True)
+        self.gru = nn.GRU(input_size=3, hidden_size=hidden_dim, num_layers=num_layers, batch_first=True, bidirectional=True)
         self.fc = nn.Linear(256, 10)
         self.output = nn.Linear(10, 1)
 

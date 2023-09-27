@@ -8,16 +8,20 @@ import deep_model
 
 def get_data(subjects, preprocess, compute_feature_vectors):
     if preprocess:
+        # TODO: combine preprocessign and calculation of feature vectors into one option and calculate reduced eda signal after computation of feature vectors
         # TODO: add options for classes, time length, and possible other options
         print('Getting data and cutting out samples...')
         data_eda, labels = preprocess_data.get_cut_out_samples_and_labels(subjects)
         #### data_eda_normalized doesn't work!!!
         data_eda_normalized = data_eda.copy()
         data_eda_normalized = data_eda_normalized / np.max(data_eda_normalized)
+        data_eda_signal_tonic_phasic = preprocess_data.compute_tonic_and_phasic_components(data_eda)
+        data_eda = data_eda_signal_tonic_phasic
         save_load_data.save_samples(data_eda)
         save_load_data.save_samples_normalized(data_eda_normalized)
         save_load_data.save_labels(labels)
     else:
+        #### Loading data and computing feature vectors does not work currently (due to computation of tonic and phasic signal)
         print('Loading data...')
         data_eda = save_load_data.load_samples()
         data_eda_normalized = save_load_data.load_samples_normalized()
@@ -28,6 +32,7 @@ def get_data(subjects, preprocess, compute_feature_vectors):
     # TODO: check if feature vectors can be calculated faster (multithreading, applying functions to arrays without for-loop, etc.)
     if compute_feature_vectors:
         print('Computing feature vectors...')
+        # TODO: change feature vector calculation, since tonic and phasic signal already have been computed
         feature_vectors_eda = preprocess_data.compute_feature_vectors(data_eda)
         save_load_data.save_feature_vectors(feature_vectors_eda)
         time_sequences_feature_vectors = preprocess_data.compute_time_sequences_feature_vectors(data_eda)
@@ -45,7 +50,7 @@ def main():
     classes = (1, 4)
     preprocess = False
     compute_feature_vectors = False
-    batch_size=40
+    batch_size = 40
     
     subjects = save_load_data.get_subjects()
     
@@ -73,7 +78,7 @@ def main():
         feature_vectors_training = np.delete(feature_vectors_eda, np.s_[index], 0)
         sequence_feature_vectors_training = np.delete(time_sequences_feature_vectors, np.s_[index], 0)
         labels_training = np.delete(labels, np.s_[index], 0)
-        data_training = data_training.reshape((86 * 40, 6144))
+        data_training = data_training.reshape((86 * 40, 6144, 3))
         feature_vectors_training = feature_vectors_training.reshape((86 * 40, 36))
         sequence_feature_vectors_training = sequence_feature_vectors_training.reshape((86 * 40, 8, 12))
         labels_training = labels_training.ravel()
