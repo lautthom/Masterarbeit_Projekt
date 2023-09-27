@@ -70,9 +70,9 @@ def run_model(model, data_train, labels_train, data_test, labels_test, batch_siz
     if model == 'cnn':
         net = deep_learning_architectures.CNN().to(device)
     elif model == 'rnn':
-        net = deep_learning_architectures.RNN(hidden_dim=64, batch_size=batch_size, num_layers=2).to(device)
+        net = deep_learning_architectures.RNN(hidden_dim=128, num_layers=2).to(device)
     elif model == 'crnn':
-        net = deep_learning_architectures.CRNN().to(device)
+        net = deep_learning_architectures.CRNN(hidden_dim=128, num_layers=2).to(device)
     elif model == 'feature_rnn':
         net = deep_learning_architectures.FeatureRNN().to(device)
 
