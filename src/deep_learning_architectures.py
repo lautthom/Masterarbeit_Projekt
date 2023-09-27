@@ -5,10 +5,10 @@ import torch.nn as nn
 class CNN(nn.Module):
     def __init__(self):
         super(CNN, self).__init__()
-        self.conv = nn.Conv1d(in_channels=1, out_channels=4, kernel_size=9, padding='same')
-        self.conv2 = nn.Conv1d(in_channels=4, out_channels=8, kernel_size=9, padding='same')
+        self.conv = nn.Conv1d(in_channels=3, out_channels=12, kernel_size=9, padding='same')
+        self.conv2 = nn.Conv1d(in_channels=12, out_channels=24, kernel_size=9, padding='same')
 
-        self.fc = nn.Linear(8 * 6144, 512)
+        self.fc = nn.Linear(256 * 24, 512)
         self.fc2 = nn.Linear(512, 100)
         self.output = nn.Linear(100, 1)
 
@@ -16,6 +16,7 @@ class CNN(nn.Module):
         self.sigmoid = nn.Sigmoid()
 
     def forward(self, x, device):
+        x = torch.permute(x, (0, 2, 1))
         x = self.relu(self.conv(x))
         x = self.relu(self.conv2(x))
         x = torch.flatten(x, start_dim=1)
