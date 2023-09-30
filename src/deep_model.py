@@ -60,11 +60,7 @@ def run_model(model, data_train, labels_train, data_test, labels_test, batch_siz
     labels_train_relabeled = np.expand_dims(labels_train_relabeled, axis=1)
     labels_test = np.expand_dims(labels_test_relabeled, axis=1)
 
-    data_train, data_eval = np.split(data_train, [int(((len(data_train) // 40) * 0.8)) * 40])
-    labels_train_relabeled, labels_eval = np.split(labels_train_relabeled, [int(((len(labels_train_relabeled) // 40) * 0.8)) * 40])
-
     train_dataloader = deep_learning_utils.make_dataloader(data_train, labels_train_relabeled, batch_size)
-    eval_dataloader = deep_learning_utils.make_dataloader(data_eval, labels_eval, batch_size)
     test_dataloader = deep_learning_utils.make_dataloader(data_test, labels_test, batch_size)
 
     # include permute here instead of in forward pass, reducing time permute is needed?
@@ -81,7 +77,6 @@ def run_model(model, data_train, labels_train, data_test, labels_test, batch_siz
     optimizer = optim.SGD(net.parameters(), lr=0.1)  # reduce lr during epochs
 
     train_accuracies = []
-    eval_accuracies = []
 
     for i in range(300):
         loss_epoch = 0
@@ -109,15 +104,14 @@ def run_model(model, data_train, labels_train, data_test, labels_test, batch_siz
                 labels_epoch.append(label.item())
  
         train_accuracy = accuracy_score(labels_epoch, predictions_epoch)
-        eval_accuracy = run_evaluation(net, eval_dataloader, device)
 
         train_accuracies.append(train_accuracy)
-        eval_accuracies.append(eval_accuracy)
-            
-        print(f'Epoch: {i}, Loss: {loss_epoch:.2f}, Train accuracy: {train_accuracy:.3f}, Eval accuracy: {eval_accuracy:.3f}')
+
+        print(f'Epoch: {i}, Loss: {loss_epoch:.2f}, Train accuracy: {train_accuracy:.3f}')
     
+    # extend training plot to include loss or deprecate
     if show_training_plot:
-        deep_learning_utils.make_training_plot(train_accuracies, eval_accuracies)
+        deep_learning_utils.make_training_plot(train_accuracies)
     
     test_accuracy = run_evaluation(net, test_dataloader, device, show_confusion_matrix=show_confusion_matrix)
 
