@@ -28,10 +28,9 @@ def relabel(label_array):
     return label_array
 
 
-def make_training_plot(train_accuracies, eval_accuracies):
+def make_training_plot(train_accuracies):
     fig, ax = plt.subplots()
     x = np.arange(0, 25)
     ax.plot(x, train_accuracies, label='train_accuracies')
-    ax.plot(x, eval_accuracies, label='eval_accuracies')
     ax.legend() 
     plt.show()
