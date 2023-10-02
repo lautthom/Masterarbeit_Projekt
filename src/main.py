@@ -8,7 +8,7 @@ import deep_model
 
 def get_data(subjects, preprocess, classes, sample_duration):
     if preprocess:
-        # TODO: add options for classes, and possible other options
+        # TODO: add options for possible other options
         # TODO: add all (correct) feature for feature vectors
         # TODO: check if feature vectors can be calculated faster (multithreading, applying functions to arrays without for-loop, etc.)
         print('Getting data and cutting out samples...')
@@ -44,16 +44,7 @@ def get_data(subjects, preprocess, classes, sample_duration):
     return data_eda, labels, feature_vectors_eda, time_sequences_feature_vectors
 
 
-def main():
-    classes = (2, 3)
-    sample_duration = round(8.55, 1)
-    preprocess = False
-    batch_size = 40
-    
-    subjects = save_load_data.get_subjects()
-    
-    data_eda, labels, feature_vectors_eda, time_sequences_feature_vectors = get_data(subjects, preprocess, classes, sample_duration)
-
+def loso(data_eda, feature_vectors_eda, time_sequences_feature_vectors, labels, subjects, batch_size, classes):
     random_forest_accuracies = []
     rnn_accuracies = []
     crnn_accuracies = []
@@ -64,7 +55,6 @@ def main():
     # TODO: add options for batch size, learning rate, etc.
     
     # TODO: add GRU unit for RNN models?
-
     for index, (proband_data, proband_feature_vectors, proband_sequence_feature_vectors, proband_labels, proband_name) in enumerate(zip(data_eda, feature_vectors_eda, time_sequences_feature_vectors, labels, subjects)):
         print(f'Current proband: {proband_name}')
         data_test = proband_data
@@ -78,7 +68,7 @@ def main():
         labels_training = np.delete(labels, np.s_[index], 0)
         data_training = data_training.reshape((86 * 40, data_training.shape[2], 3))
         feature_vectors_training = feature_vectors_training.reshape((86 * 40, 36))
-        sequence_feature_vectors_training = sequence_feature_vectors_training.reshape((86 * 40, int(sample_duration), 36))
+        sequence_feature_vectors_training = sequence_feature_vectors_training.reshape((86 * 40, sequence_feature_vectors_training.shape[2], 36))
         labels_training = labels_training.ravel()
 
         data_training, feature_vectors_training, sequence_feature_vectors_training, labels_training = sklearn.utils.shuffle(data_training, feature_vectors_training, sequence_feature_vectors_training, labels_training)
@@ -118,8 +108,19 @@ def main():
     print(f'Mean CRNN model Accuracy: {sum(crnn_accuracies) / len(crnn_accuracies):.4f}')
     print(f'Mean feature RNN model Accuracy: {sum(feature_rnn_accuracies) / len(feature_rnn_accuracies):.4f}')
     print(f'Mean CNN model Accuracy: {sum(cnn_accuracies) / len(cnn_accuracies):.4f}')
-        
 
+
+def main():
+    classes = (2, 3)
+    sample_duration = round(8.55, 1)
+    preprocess = False
+    batch_size = 40
+    
+    subjects = save_load_data.get_subjects()
+    
+    data_eda, labels, feature_vectors_eda, time_sequences_feature_vectors = get_data(subjects, preprocess, classes, sample_duration)
+
+    loso(data_eda, feature_vectors_eda, time_sequences_feature_vectors, labels, subjects, batch_size, classes)
 
 if __name__ == '__main__':
     # TODO: make .txt file of dependencies and order dependencies correctly
