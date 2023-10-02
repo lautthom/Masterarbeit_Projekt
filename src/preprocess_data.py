@@ -119,10 +119,7 @@ def compute_feature_vectors(data):
 
 
 def compute_time_sequences_feature_vectors(data):
-
     number_feature_vectors = int(data.shape[2] // 512)
-    print(number_feature_vectors)
-
     complete_time_sequence_features = np.empty([0, data.shape[1], number_feature_vectors, 36])
     for proband in data:
         probands_features = np.empty([0, number_feature_vectors, 36])

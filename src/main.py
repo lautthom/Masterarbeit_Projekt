@@ -6,10 +6,12 @@ import sklearn
 import deep_model
 
 
-def get_data(subjects, preprocess, compute_feature_vectors, sample_duration):
+def get_data(subjects, preprocess, sample_duration):
     if preprocess:
-        # TODO: combine preprocessign and calculation of feature vectors into one option and calculate reduced eda signal after computation of feature vectors
+        # TODO: calculate reduced eda signal after computation of feature vectors
         # TODO: add options for classes, time length, and possible other options
+        # TODO: add all (correct) feature for feature vectors
+        # TODO: check if feature vectors can be calculated faster (multithreading, applying functions to arrays without for-loop, etc.)
         print('Getting data and cutting out samples...')
         data_eda, labels = preprocess_data.get_cut_out_samples_and_labels(subjects, sample_duration)
         #### data_eda_normalized doesn't work!!!
@@ -18,31 +20,23 @@ def get_data(subjects, preprocess, compute_feature_vectors, sample_duration):
         data_eda_signal_tonic_phasic = preprocess_data.compute_tonic_and_phasic_components(data_eda)
         data_eda = data_eda_signal_tonic_phasic
         # TODO: include length of samples in file names when saving/loading data
-        save_load_data.save_samples(data_eda)
-        save_load_data.save_samples_normalized(data_eda_normalized)
-        save_load_data.save_labels(labels)
-    else:
-        #### Loading data and computing feature vectors does not work currently (due to computation of tonic and phasic signal)
-        print('Loading data...')
-        data_eda = save_load_data.load_samples()
-        data_eda_normalized = save_load_data.load_samples_normalized()
-        labels = save_load_data.load_labels()
+        save_load_data.save_samples(data_eda, sample_duration)
+        save_load_data.save_samples_normalized(data_eda_normalized, sample_duration)
+        save_load_data.save_labels(labels)      
 
-    # TODO: add all (correct) feature for feature vectors
-    # TODO: check if feature vectors can be calculated faster (multithreading, applying functions to arrays without for-loop, etc.)
-    if compute_feature_vectors:
         print('Computing feature vectors...')
-        # TODO: change feature vector calculation, since tonic and phasic signal already have been computed
         feature_vectors_eda = preprocess_data.compute_feature_vectors(data_eda)
-        save_load_data.save_feature_vectors(feature_vectors_eda)
-        # TODO: add tonic and phasic componentes to feature vector computation of time sequences!!!
         # TODO: option for half second feature vector? if yes, also change file saving/loading system for time_sequence_feature_vectors
         time_sequences_feature_vectors = preprocess_data.compute_time_sequences_feature_vectors(data_eda)
-        save_load_data.save_time_sequences_feature_vectors(time_sequences_feature_vectors)
+        save_load_data.save_feature_vectors(feature_vectors_eda, sample_duration)
+        save_load_data.save_time_sequences_feature_vectors(time_sequences_feature_vectors, sample_duration)
     else:
-        print('Loading feature vectors...')
-        feature_vectors_eda = save_load_data.load_feature_vectors()
-        time_sequences_feature_vectors = save_load_data.load_time_sequences_feature_vectors()
+        print('Loading data and feature vectors...')
+        data_eda = save_load_data.load_samples(sample_duration)
+        data_eda_normalized = save_load_data.load_samples_normalized(sample_duration)
+        labels = save_load_data.load_labels()
+        feature_vectors_eda = save_load_data.load_feature_vectors(sample_duration)
+        time_sequences_feature_vectors = save_load_data.load_time_sequences_feature_vectors(sample_duration)
 
     #### data_eda_normalized doesn't work!!!
     return data_eda, labels, feature_vectors_eda, time_sequences_feature_vectors
@@ -52,12 +46,11 @@ def main():
     classes = (1, 4)
     sample_duration = round(8.55, 1)
     preprocess = False
-    compute_feature_vectors = False
     batch_size = 40
     
     subjects = save_load_data.get_subjects()
     
-    data_eda, labels, feature_vectors_eda, time_sequences_feature_vectors = get_data(subjects, preprocess, compute_feature_vectors, sample_duration)
+    data_eda, labels, feature_vectors_eda, time_sequences_feature_vectors = get_data(subjects, preprocess, sample_duration)
     
     random_forest_accuracies = []
     rnn_accuracies = []
@@ -117,9 +110,9 @@ def main():
     
     # TODO: implement confusion matrix for results
     print(f'Mean Random Forest model Accuracy: {sum(random_forest_accuracies) / len(random_forest_accuracies):.4f}')
-    # print(f'Mean RNN model Accuracy: {sum(rnn_accuracies) / len(rnn_accuracies):.4f}')
-    # print(f'Mean CRNN model Accuracy: {sum(crnn_accuracies) / len(crnn_accuracies):.4f}')
-    # print(f'Mean feature RNN model Accuracy: {sum(feature_rnn_accuracies) / len(feature_rnn_accuracies):.4f}')
+    print(f'Mean RNN model Accuracy: {sum(rnn_accuracies) / len(rnn_accuracies):.4f}')
+    print(f'Mean CRNN model Accuracy: {sum(crnn_accuracies) / len(crnn_accuracies):.4f}')
+    print(f'Mean feature RNN model Accuracy: {sum(feature_rnn_accuracies) / len(feature_rnn_accuracies):.4f}')
     print(f'Mean CNN model Accuracy: {sum(cnn_accuracies) / len(cnn_accuracies):.4f}')
         
 
