@@ -22,9 +22,9 @@ def make_dataloader(data, labels, batch_size):
     return DataLoader(dataset, batch_size=batch_size, shuffle=True)
 
 
-def relabel(label_array):
-    label_array[label_array == 1] = 0
-    label_array[label_array == 4] = 1
+def relabel(label_array, classes):
+    label_array[label_array == classes[0]] = 0
+    label_array[label_array == classes[1]] = 1
     return label_array
 
 

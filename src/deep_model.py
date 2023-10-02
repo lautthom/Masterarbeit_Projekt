@@ -32,24 +32,22 @@ def run_evaluation(model, dataloader, device, show_confusion_matrix=False):
     return accuracy_score(labels_evaluation, predictions)
 
 
-def run_model(model, data_train, labels_train, data_test, labels_test, batch_size, show_confusion_matrix=False, show_training_plot=False):
+def run_model(model, data_train, labels_train, data_test, labels_test, batch_size, classes, show_confusion_matrix=False, show_training_plot=False):
     device = 'cuda' if torch.cuda.is_available() else 'cpu'
     print(f'Using {device} device')
 
     labels_train_copy = labels_train.copy()
     labels_test_copy = labels_test.copy()
 
-    labels_train_relabeled = deep_learning_utils.relabel(labels_train_copy)
-    labels_test_relabeled = deep_learning_utils.relabel(labels_test_copy)
+    labels_train_relabeled = deep_learning_utils.relabel(labels_train_copy, classes)
+    labels_test_relabeled = deep_learning_utils.relabel(labels_test_copy, classes)
 
     labels_train_relabeled = np.expand_dims(labels_train_relabeled, axis=1)
     labels_test = np.expand_dims(labels_test_relabeled, axis=1)
 
-    # include permute here instead of in forward pass, reducing time permute is needed?
     if model == 'cnn':
         net = deep_learning_architectures.CNN(data_train.shape[1]).to(device)
         data_train = np.transpose(data_train, (0, 2, 1))
-        print(data_train.shape)
         data_test = np.transpose(data_test, (0, 2, 1))
     elif model == 'rnn':
         net = deep_learning_architectures.RNN(hidden_dim=128, num_layers=2).to(device)

@@ -6,14 +6,13 @@ import sklearn
 import deep_model
 
 
-def get_data(subjects, preprocess, sample_duration):
+def get_data(subjects, preprocess, classes, sample_duration):
     if preprocess:
-        # TODO: calculate reduced eda signal after computation of feature vectors
-        # TODO: add options for classes, time length, and possible other options
+        # TODO: add options for classes, and possible other options
         # TODO: add all (correct) feature for feature vectors
         # TODO: check if feature vectors can be calculated faster (multithreading, applying functions to arrays without for-loop, etc.)
         print('Getting data and cutting out samples...')
-        data_eda, labels = preprocess_data.get_cut_out_samples_and_labels(subjects, sample_duration)
+        data_eda, labels = preprocess_data.get_cut_out_samples_and_labels(subjects, classes, sample_duration)
         #### data_eda_normalized doesn't work!!!
         data_eda_normalized = data_eda.copy()
         data_eda_normalized = data_eda_normalized / np.max(data_eda_normalized)
@@ -27,33 +26,33 @@ def get_data(subjects, preprocess, sample_duration):
        
         data_eda = preprocess_data.reduce_eda_signal(data_eda)
         
-        save_load_data.save_samples(data_eda, sample_duration)
-        save_load_data.save_samples_normalized(data_eda_normalized, sample_duration)
-        save_load_data.save_labels(labels)   
-        save_load_data.save_feature_vectors(feature_vectors_eda, sample_duration)
-        save_load_data.save_time_sequences_feature_vectors(time_sequences_feature_vectors, sample_duration)
+        save_load_data.save_samples(data_eda, sample_duration, classes)
+        save_load_data.save_samples_normalized(data_eda_normalized, sample_duration, classes)
+        save_load_data.save_labels(labels, classes)   
+        save_load_data.save_feature_vectors(feature_vectors_eda, sample_duration, classes)
+        save_load_data.save_time_sequences_feature_vectors(time_sequences_feature_vectors, sample_duration, classes)
         
     else:
         print('Loading data and feature vectors...')
-        data_eda = save_load_data.load_samples(sample_duration)
-        data_eda_normalized = save_load_data.load_samples_normalized(sample_duration)
-        labels = save_load_data.load_labels()
-        feature_vectors_eda = save_load_data.load_feature_vectors(sample_duration)
-        time_sequences_feature_vectors = save_load_data.load_time_sequences_feature_vectors(sample_duration)
+        data_eda = save_load_data.load_samples(sample_duration, classes)
+        data_eda_normalized = save_load_data.load_samples_normalized(sample_duration, classes)
+        labels = save_load_data.load_labels(classes)
+        feature_vectors_eda = save_load_data.load_feature_vectors(sample_duration, classes)
+        time_sequences_feature_vectors = save_load_data.load_time_sequences_feature_vectors(sample_duration, classes)
 
     #### data_eda_normalized doesn't work!!!
     return data_eda, labels, feature_vectors_eda, time_sequences_feature_vectors
 
 
 def main():
-    classes = (1, 4)
+    classes = (2, 3)
     sample_duration = round(8.55, 1)
     preprocess = False
     batch_size = 40
     
     subjects = save_load_data.get_subjects()
     
-    data_eda, labels, feature_vectors_eda, time_sequences_feature_vectors = get_data(subjects, preprocess, sample_duration)
+    data_eda, labels, feature_vectors_eda, time_sequences_feature_vectors = get_data(subjects, preprocess, classes, sample_duration)
 
     random_forest_accuracies = []
     rnn_accuracies = []
@@ -90,13 +89,15 @@ def main():
         print(f'Random Forest Accuracy: {accuracy_forest}')
         random_forest_accuracies.append(accuracy_forest)
 
+        #Make enum (or comparable) for type of model
+
         # print('Running RNN model...')
         # accuracy_rnn = deep_model.run_model('rnn', data_training, labels_training, data_test, labels_test, batch_size)
         # print(f'RNN Model Accuracy: {accuracy_rnn}')
         # rnn_accuracies.append(accuracy_rnn)
 
         print('Running CRNN model...')
-        accuracy_crnn = deep_model.run_model('crnn', data_training, labels_training, data_test, labels_test, batch_size)
+        accuracy_crnn = deep_model.run_model('crnn', data_training, labels_training, data_test, labels_test, batch_size, classes)
         print(f'CRNN Model Accuracy: {accuracy_crnn}')
         crnn_accuracies.append(accuracy_crnn)
 
@@ -106,7 +107,7 @@ def main():
         # feature_rnn_accuracies.append(accuracy_feature_rnn)
 
         print('Running CNN model...')
-        accuracy_cnn = deep_model.run_model('cnn', data_training, labels_training, data_test, labels_test, batch_size)
+        accuracy_cnn = deep_model.run_model('cnn', data_training, labels_training, data_test, labels_test, batch_size, classes)
         print(f'CNN Model Accuracy: {accuracy_cnn}')
         cnn_accuracies.append(accuracy_cnn)
         print(' ')

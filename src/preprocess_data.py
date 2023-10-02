@@ -6,7 +6,7 @@ import neurokit2 as nk
 import pathlib
 
 
-def get_cut_out_samples_and_labels(subjects, sample_duration):
+def get_cut_out_samples_and_labels(subjects, classes, sample_duration):
 
     datapoints_per_sample = int(round(sample_duration * 512, 0))
     
@@ -20,9 +20,9 @@ def get_cut_out_samples_and_labels(subjects, sample_duration):
         data_filtered = data.filter(items=['time', 'gsr'])
 
         # possible refactoring
-        mask_label_1 = stimulus_data['label'] == 1 
-        mask_label_4 = stimulus_data['label'] == 4
-        total_mask = mask_label_1 | mask_label_4
+        first_class_mask = stimulus_data['label'] == classes[0]
+        second_class_mask = stimulus_data['label'] == classes[1]
+        total_mask = first_class_mask | second_class_mask
 
         stimulus_data_labels = stimulus_data.loc[total_mask]
         labels_df = stimulus_data_labels.dropna()
@@ -138,14 +138,12 @@ def compute_time_sequences_feature_vectors(data):
 
 
 def reduce_eda_signal(data):  
-    print(data.shape)
     complete_means = np.empty([0, data.shape[1], data.shape[2]//16, 3])
     for proband in data:
         proband_means = np.empty([0, data.shape[2]//16, 3])
         for sample in proband:
             means = np.empty([0, 3])
             for i in range(data.shape[2] // 16):
-                print(i*16)
                 mean = np.mean(sample[i*16:(i+1)*16], axis=0)
                 means = np.append(means, np.expand_dims(mean, axis=0), axis=0)
             proband_means = np.append(proband_means, np.expand_dims(means, axis=0), axis=0)
