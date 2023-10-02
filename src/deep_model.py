@@ -32,7 +32,7 @@ def run_evaluation(model, dataloader, device, show_confusion_matrix=False):
     return accuracy_score(labels_evaluation, predictions)
 
 
-def run_model(model, data_train, labels_train, data_test, labels_test, batch_size, classes, show_confusion_matrix=False, show_training_plot=False):
+def run_model(model, data_train, labels_train, data_test, labels_test, classes, learning_rate, epochs, batch_size, show_confusion_matrix=False, show_training_plot=False):
     device = 'cuda' if torch.cuda.is_available() else 'cpu'
     print(f'Using {device} device')
 
@@ -62,11 +62,11 @@ def run_model(model, data_train, labels_train, data_test, labels_test, batch_siz
     test_dataloader = deep_learning_utils.make_dataloader(data_test, labels_test, batch_size)
 
     criterion = nn.BCELoss()
-    optimizer = optim.SGD(net.parameters(), lr=0.005)  # reduce lr during epochs
+    optimizer = optim.SGD(net.parameters(), lr=learning_rate)  
 
     train_accuracies = []
 
-    for i in range(50):
+    for i in range(epochs):
         loss_epoch = 0
         
         predictions_epoch = []
