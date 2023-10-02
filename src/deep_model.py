@@ -74,11 +74,11 @@ def run_model(model, data_train, labels_train, data_test, labels_test, batch_siz
         net = deep_learning_architectures.FeatureRNN(hidden_dim=128, num_layers=2).to(device)
 
     criterion = nn.BCELoss()
-    optimizer = optim.SGD(net.parameters(), lr=0.1)  # reduce lr during epochs
+    optimizer = optim.SGD(net.parameters(), lr=0.005)  # reduce lr during epochs
 
     train_accuracies = []
 
-    for i in range(300):
+    for i in range(50):
         loss_epoch = 0
         
         predictions_epoch = []

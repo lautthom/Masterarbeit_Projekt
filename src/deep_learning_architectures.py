@@ -92,8 +92,8 @@ class CRNN(nn.Module):
 class FeatureRNN(nn.Module):
     def __init__(self, hidden_dim, num_layers):
         super(FeatureRNN, self).__init__()
-        self.lstm = nn.LSTM(input_size=12, hidden_size=hidden_dim, num_layers=num_layers, batch_first=True, bidirectional=True)
-        self.gru = nn.GRU(input_size=12, hidden_size=hidden_dim, num_layers=num_layers, batch_first=True, bidirectional=True)
+        self.lstm = nn.LSTM(input_size=36, hidden_size=hidden_dim, num_layers=num_layers, batch_first=True, bidirectional=True)
+        self.gru = nn.GRU(input_size=36, hidden_size=hidden_dim, num_layers=num_layers, batch_first=True, bidirectional=True)
         self.fc = nn.Linear(hidden_dim * num_layers * 2, 10)
         self.output = nn.Linear(10, 1)
 

@@ -4,11 +4,13 @@ import matplotlib.pyplot as plt
 import math
 import neurokit2 as nk
 import pathlib
-import save_load_data
 
 
-def get_cut_out_samples_and_labels(subjects):
-    samples = np.empty([0, 40, 4096])
+def get_cut_out_samples_and_labels(subjects, sample_duration):
+
+    datapoints_per_sample = int(round(sample_duration * 512, 0))
+    
+    samples = np.empty([0, 40, datapoints_per_sample])
     labels = np.empty([0, 40])
 
     for subject in subjects:
@@ -32,16 +34,11 @@ def get_cut_out_samples_and_labels(subjects):
 
         merged_array = merged_data.to_numpy()
 
-        time_in_s = 8
-        number_of_samples = time_in_s * 512
-
-        datapoints_per_sample = merged_array[0].shape[0]
-
-        stimulus_label_data = np.empty([0, number_of_samples, datapoints_per_sample])
+        stimulus_label_data = np.empty([0, datapoints_per_sample, merged_array[0].shape[0]])
 
         for index, item in enumerate(merged_array):
             if not np.isnan(item[1]):
-                stimulus_label_data = np.append(stimulus_label_data, np.array([merged_array[index:index+number_of_samples]]), axis=0)
+                stimulus_label_data = np.append(stimulus_label_data, np.array([merged_array[index:index+datapoints_per_sample]]), axis=0)
 
         stimulus_data = np.squeeze(np.delete(stimulus_label_data, 1, 2))
 
@@ -59,15 +56,25 @@ def process_eda_signal(sample):
         signals, info = nk.eda_process(sample, sampling_rate=50)
         return signals['EDA_Clean'].to_numpy(), signals['EDA_Tonic'].to_numpy(), signals['EDA_Phasic'].to_numpy()
     except ValueError:  # neurokit throws ValueError, when EDA signal is flat; since a flat signal does not need to be cleaned and has no phasic component, the existing signal will be used as cleaned and tonic signal, a flat line with value 0 will be used as phasic signal.
-        return sample, sample, np.zeros([8 * 512])
+        return sample, sample, np.zeros([sample.shape[0]])
+    
+
+def compute_tonic_and_phasic_components(data):
+    processed_proband_data = np.empty([0, data.shape[1], data.shape[2], 3])
+    for proband in data:
+        processed_samples = np.empty([0, data.shape[2], 3])
+        for sample in proband:
+            processed_eda_signal = np.stack((process_eda_signal(sample)), axis=1)
+            processed_samples = np.append(processed_samples, np.expand_dims(processed_eda_signal, axis=0), axis=0)
+        processed_proband_data = np.append(processed_proband_data, np.expand_dims(processed_samples, axis=0), axis=0)
+    return processed_proband_data
+
     
 
 def _compute_feature_vector(sample):
-    clean_signal, tonic_signal, phasic_signal = process_eda_signal(sample)
-
-    clean_features = _compute_statistical_descriptors(pd.Series(clean_signal))
-    tonic_features = _compute_statistical_descriptors(pd.Series(tonic_signal))
-    phasic_features = _compute_statistical_descriptors(pd.Series(phasic_signal))
+    clean_features = _compute_statistical_descriptors(pd.Series(sample[:, 0]))
+    tonic_features = _compute_statistical_descriptors(pd.Series(sample[:, 1]))
+    phasic_features = _compute_statistical_descriptors(pd.Series(sample[:, 2]))
     # mean_peak_amplitude = np.array([[info['SCR_Amplitude'].mean()]])
     # feature_vector = np.concatenate((clean_features, tonic_features, phasic_features, mean_peak_amplitude), axis=1)
     feature_vector = np.concatenate((clean_features, tonic_features, phasic_features), axis=1)
@@ -101,7 +108,7 @@ def _compute_statistical_descriptors(signal):
 
 
 def compute_feature_vectors(data):
-    feature_vectors = np.empty([0, 40, 36])
+    feature_vectors = np.empty([0, data.shape[1], 36])
     for proband in data:
         proband_vector = np.empty([0, 36])
         for sample in proband:
@@ -111,14 +118,22 @@ def compute_feature_vectors(data):
     return feature_vectors
 
 
-def compute_time_sequences_feature_vectors(data):  
-    complete_time_sequence_features = np.empty([0, 40, 8, 12])
+def compute_time_sequences_feature_vectors(data):
+
+    number_feature_vectors = int(data.shape[2] // 512)
+    print(number_feature_vectors)
+
+    complete_time_sequence_features = np.empty([0, data.shape[1], number_feature_vectors, 36])
     for proband in data:
-        probands_features = np.empty([0, 8, 12])
+        probands_features = np.empty([0, number_feature_vectors, 36])
         for sample in proband:
-            features_samples = np.empty([0, 12])
-            for i in range(8):
-                features_time_sequence = _compute_statistical_descriptors(pd.Series(sample[i*512 : (i+1)*512]))
+            features_samples = np.empty([0, 36])
+            for i in range(number_feature_vectors):
+                #features_time_sequence = _compute_statistical_descriptors(pd.Series(sample[i*512 : (i+1)*512]))
+                features_time_sequence = _compute_feature_vector(sample[i*512 : (i+1)*512])
+
+
+
                 features_samples = np.append(features_samples, features_time_sequence, axis=0)
             probands_features = np.append(probands_features, np.expand_dims(features_samples, axis=0), axis=0)
         complete_time_sequence_features = np.append(complete_time_sequence_features, np.expand_dims(probands_features, axis=0), axis=0)
