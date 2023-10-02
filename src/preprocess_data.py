@@ -135,3 +135,19 @@ def compute_time_sequences_feature_vectors(data):
             probands_features = np.append(probands_features, np.expand_dims(features_samples, axis=0), axis=0)
         complete_time_sequence_features = np.append(complete_time_sequence_features, np.expand_dims(probands_features, axis=0), axis=0)
     return complete_time_sequence_features
+
+
+def reduce_eda_signal(data):  
+    print(data.shape)
+    complete_means = np.empty([0, data.shape[1], data.shape[2]//16, 3])
+    for proband in data:
+        proband_means = np.empty([0, data.shape[2]//16, 3])
+        for sample in proband:
+            means = np.empty([0, 3])
+            for i in range(data.shape[2] // 16):
+                print(i*16)
+                mean = np.mean(sample[i*16:(i+1)*16], axis=0)
+                means = np.append(means, np.expand_dims(mean, axis=0), axis=0)
+            proband_means = np.append(proband_means, np.expand_dims(means, axis=0), axis=0)
+        complete_means = np.append(complete_means, np.expand_dims(proband_means, axis=0), axis=0)
+    return complete_means

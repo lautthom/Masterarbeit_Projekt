@@ -3,12 +3,12 @@ import torch.nn as nn
 
 
 class CNN(nn.Module):
-    def __init__(self):
+    def __init__(self, sample_length):
         super(CNN, self).__init__()
         self.conv = nn.Conv1d(in_channels=3, out_channels=12, kernel_size=9, padding='same')
         self.conv2 = nn.Conv1d(in_channels=12, out_channels=24, kernel_size=9, padding='same')
 
-        self.fc = nn.Linear(256 * 24, 512)
+        self.fc = nn.Linear(sample_length * 24, 512)
         self.fc2 = nn.Linear(512, 100)
         self.output = nn.Linear(100, 1)
 
@@ -16,7 +16,6 @@ class CNN(nn.Module):
         self.sigmoid = nn.Sigmoid()
 
     def forward(self, x, device):
-        x = torch.permute(x, (0, 2, 1))
         x = self.relu(self.conv(x))
         x = self.relu(self.conv2(x))
         x = torch.flatten(x, start_dim=1)
@@ -77,7 +76,6 @@ class CRNN(nn.Module):
         c0 = torch.zeros(self.num_layers * 2, x.shape[0], self.hidden_dim).requires_grad_()
         c0 = c0.to(device)
 
-        x = torch.permute(x, (0, 2, 1))
         x = self.relu(self.conv(x))
         x = torch.permute(x, (0, 2, 1))
         x, (h_n, c_n) = self.lstm(x, (h0.detach(), c0.detach()))

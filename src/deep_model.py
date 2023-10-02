@@ -32,17 +32,6 @@ def run_evaluation(model, dataloader, device, show_confusion_matrix=False):
     return accuracy_score(labels_evaluation, predictions)
 
 
-def get_means(data):  
-    complete_means = np.empty([0, 32*8, 3])
-    for sample in data:
-        means = np.empty([0, 3])
-        for i in range(8*32):
-            mean = np.mean(sample[i*16:(i+1)*16], axis=0)
-            means = np.append(means, np.expand_dims(mean, axis=0), axis=0)
-        complete_means = np.append(complete_means, np.expand_dims(means, axis=0), axis=0)
-    return complete_means
-
-
 def run_model(model, data_train, labels_train, data_test, labels_test, batch_size, show_confusion_matrix=False, show_training_plot=False):
     device = 'cuda' if torch.cuda.is_available() else 'cpu'
     print(f'Using {device} device')
@@ -52,26 +41,27 @@ def run_model(model, data_train, labels_train, data_test, labels_test, batch_siz
 
     labels_train_relabeled = deep_learning_utils.relabel(labels_train_copy)
     labels_test_relabeled = deep_learning_utils.relabel(labels_test_copy)
-    
-    if not model == 'feature_rnn':
-        data_train = get_means(data_train)
-        data_test = get_means(data_test)
 
     labels_train_relabeled = np.expand_dims(labels_train_relabeled, axis=1)
     labels_test = np.expand_dims(labels_test_relabeled, axis=1)
 
-    train_dataloader = deep_learning_utils.make_dataloader(data_train, labels_train_relabeled, batch_size)
-    test_dataloader = deep_learning_utils.make_dataloader(data_test, labels_test, batch_size)
-
     # include permute here instead of in forward pass, reducing time permute is needed?
     if model == 'cnn':
-        net = deep_learning_architectures.CNN().to(device)
+        net = deep_learning_architectures.CNN(data_train.shape[1]).to(device)
+        data_train = np.transpose(data_train, (0, 2, 1))
+        print(data_train.shape)
+        data_test = np.transpose(data_test, (0, 2, 1))
     elif model == 'rnn':
         net = deep_learning_architectures.RNN(hidden_dim=128, num_layers=2).to(device)
     elif model == 'crnn':
         net = deep_learning_architectures.CRNN(hidden_dim=128, num_layers=2).to(device)
+        data_train = np.transpose(data_train, (0, 2, 1))
+        data_test = np.transpose(data_test, (0, 2, 1))
     elif model == 'feature_rnn':
         net = deep_learning_architectures.FeatureRNN(hidden_dim=128, num_layers=2).to(device)
+        
+    train_dataloader = deep_learning_utils.make_dataloader(data_train, labels_train_relabeled, batch_size)
+    test_dataloader = deep_learning_utils.make_dataloader(data_test, labels_test, batch_size)
 
     criterion = nn.BCELoss()
     optimizer = optim.SGD(net.parameters(), lr=0.005)  # reduce lr during epochs

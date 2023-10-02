@@ -19,17 +19,20 @@ def get_data(subjects, preprocess, sample_duration):
         data_eda_normalized = data_eda_normalized / np.max(data_eda_normalized)
         data_eda_signal_tonic_phasic = preprocess_data.compute_tonic_and_phasic_components(data_eda)
         data_eda = data_eda_signal_tonic_phasic
-        # TODO: include length of samples in file names when saving/loading data
-        save_load_data.save_samples(data_eda, sample_duration)
-        save_load_data.save_samples_normalized(data_eda_normalized, sample_duration)
-        save_load_data.save_labels(labels)      
 
         print('Computing feature vectors...')
         feature_vectors_eda = preprocess_data.compute_feature_vectors(data_eda)
         # TODO: option for half second feature vector? if yes, also change file saving/loading system for time_sequence_feature_vectors
         time_sequences_feature_vectors = preprocess_data.compute_time_sequences_feature_vectors(data_eda)
+       
+        data_eda = preprocess_data.reduce_eda_signal(data_eda)
+        
+        save_load_data.save_samples(data_eda, sample_duration)
+        save_load_data.save_samples_normalized(data_eda_normalized, sample_duration)
+        save_load_data.save_labels(labels)   
         save_load_data.save_feature_vectors(feature_vectors_eda, sample_duration)
         save_load_data.save_time_sequences_feature_vectors(time_sequences_feature_vectors, sample_duration)
+        
     else:
         print('Loading data and feature vectors...')
         data_eda = save_load_data.load_samples(sample_duration)
@@ -51,7 +54,7 @@ def main():
     subjects = save_load_data.get_subjects()
     
     data_eda, labels, feature_vectors_eda, time_sequences_feature_vectors = get_data(subjects, preprocess, sample_duration)
-    
+
     random_forest_accuracies = []
     rnn_accuracies = []
     crnn_accuracies = []
@@ -74,7 +77,7 @@ def main():
         feature_vectors_training = np.delete(feature_vectors_eda, np.s_[index], 0)
         sequence_feature_vectors_training = np.delete(time_sequences_feature_vectors, np.s_[index], 0)
         labels_training = np.delete(labels, np.s_[index], 0)
-        data_training = data_training.reshape((86 * 40, int(round(sample_duration * 512, 0)), 3))
+        data_training = data_training.reshape((86 * 40, data_training.shape[2], 3))
         feature_vectors_training = feature_vectors_training.reshape((86 * 40, 36))
         sequence_feature_vectors_training = sequence_feature_vectors_training.reshape((86 * 40, int(sample_duration), 36))
         labels_training = labels_training.ravel()
@@ -87,20 +90,20 @@ def main():
         print(f'Random Forest Accuracy: {accuracy_forest}')
         random_forest_accuracies.append(accuracy_forest)
 
-        print('Running RNN model...')
-        accuracy_rnn = deep_model.run_model('rnn', data_training, labels_training, data_test, labels_test, batch_size)
-        print(f'RNN Model Accuracy: {accuracy_rnn}')
-        rnn_accuracies.append(accuracy_rnn)
+        # print('Running RNN model...')
+        # accuracy_rnn = deep_model.run_model('rnn', data_training, labels_training, data_test, labels_test, batch_size)
+        # print(f'RNN Model Accuracy: {accuracy_rnn}')
+        # rnn_accuracies.append(accuracy_rnn)
 
         print('Running CRNN model...')
         accuracy_crnn = deep_model.run_model('crnn', data_training, labels_training, data_test, labels_test, batch_size)
         print(f'CRNN Model Accuracy: {accuracy_crnn}')
         crnn_accuracies.append(accuracy_crnn)
 
-        print('Running Feature RNN model...')
-        accuracy_feature_rnn = deep_model.run_model('feature_rnn', sequence_feature_vectors_training, labels_training, sequence_feature_vectors_test, labels_test, batch_size)
-        print(f'Feature RNN Model Accuracy: {accuracy_feature_rnn}')
-        feature_rnn_accuracies.append(accuracy_feature_rnn)
+        # print('Running Feature RNN model...')
+        # accuracy_feature_rnn = deep_model.run_model('feature_rnn', sequence_feature_vectors_training, labels_training, sequence_feature_vectors_test, labels_test, batch_size)
+        # print(f'Feature RNN Model Accuracy: {accuracy_feature_rnn}')
+        # feature_rnn_accuracies.append(accuracy_feature_rnn)
 
         print('Running CNN model...')
         accuracy_cnn = deep_model.run_model('cnn', data_training, labels_training, data_test, labels_test, batch_size)
