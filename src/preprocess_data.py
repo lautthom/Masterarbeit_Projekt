@@ -51,7 +51,7 @@ def get_cut_out_samples_and_labels(subjects, classes, sample_duration):
     return samples, labels
 
 
-def process_eda_signal(sample):
+def _process_eda_signal(sample):
     try: 
         signals, info = nk.eda_process(sample, sampling_rate=50)
         return signals['EDA_Clean'].to_numpy(), signals['EDA_Tonic'].to_numpy(), signals['EDA_Phasic'].to_numpy()
@@ -64,7 +64,7 @@ def compute_tonic_and_phasic_components(data):
     for proband in data:
         processed_samples = np.empty([0, data.shape[2], 3])
         for sample in proband:
-            processed_eda_signal = np.stack((process_eda_signal(sample)), axis=1)
+            processed_eda_signal = np.stack((_process_eda_signal(sample)), axis=1)
             processed_samples = np.append(processed_samples, np.expand_dims(processed_eda_signal, axis=0), axis=0)
         processed_proband_data = np.append(processed_proband_data, np.expand_dims(processed_samples, axis=0), axis=0)
     return processed_proband_data

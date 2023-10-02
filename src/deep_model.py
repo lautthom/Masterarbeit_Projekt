@@ -32,7 +32,7 @@ def run_evaluation(model, dataloader, device, show_confusion_matrix=False):
     return accuracy_score(labels_evaluation, predictions)
 
 
-def run_model(model, data_train, labels_train, data_test, labels_test, classes, learning_rate, epochs, batch_size, show_confusion_matrix=False, show_training_plot=False):
+def run_model(model, data_train, labels_train, data_test, labels_test, classes, learning_rate, epochs, batch_size, hidden_state_size=1, num_recurrent_layer=1, use_grus=False, show_confusion_matrix=False, show_training_plot=False):
     device = 'cuda' if torch.cuda.is_available() else 'cpu'
     print(f'Using {device} device')
 
@@ -45,18 +45,18 @@ def run_model(model, data_train, labels_train, data_test, labels_test, classes, 
     labels_train_relabeled = np.expand_dims(labels_train_relabeled, axis=1)
     labels_test = np.expand_dims(labels_test_relabeled, axis=1)
 
-    if model == 'cnn':
-        net = deep_learning_architectures.CNN(data_train.shape[1]).to(device)
-        data_train = np.transpose(data_train, (0, 2, 1))
-        data_test = np.transpose(data_test, (0, 2, 1))
-    elif model == 'rnn':
-        net = deep_learning_architectures.RNN(hidden_dim=128, num_layers=2).to(device)
+    if model == 'rnn':
+        net = deep_learning_architectures.RNN(hidden_dim=hidden_state_size, num_layers=num_recurrent_layer, use_grus=use_grus).to(device)
     elif model == 'crnn':
-        net = deep_learning_architectures.CRNN(hidden_dim=128, num_layers=2).to(device)
+        net = deep_learning_architectures.CRNN(hidden_dim=hidden_state_size, num_layers=num_recurrent_layer, use_grus=use_grus).to(device)
         data_train = np.transpose(data_train, (0, 2, 1))
         data_test = np.transpose(data_test, (0, 2, 1))
     elif model == 'feature_rnn':
-        net = deep_learning_architectures.FeatureRNN(hidden_dim=128, num_layers=2).to(device)
+        net = deep_learning_architectures.FeatureRNN(hidden_dim=hidden_state_size, num_layers=num_recurrent_layer, use_grus=use_grus).to(device)
+    elif model == 'cnn':
+        net = deep_learning_architectures.CNN(data_train.shape[1]).to(device)
+        data_train = np.transpose(data_train, (0, 2, 1))
+        data_test = np.transpose(data_test, (0, 2, 1))
         
     train_dataloader = deep_learning_utils.make_dataloader(data_train, labels_train_relabeled, batch_size)
     test_dataloader = deep_learning_utils.make_dataloader(data_test, labels_test, batch_size)

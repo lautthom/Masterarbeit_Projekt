@@ -44,7 +44,7 @@ def get_data(subjects, do_preprocessing, classes, sample_duration):
     return data_eda, feature_vectors_eda, time_sequences_feature_vectors, labels
 
 
-def loso(data_eda, feature_vectors_eda, time_sequences_feature_vectors, labels, subjects, classes, learning_rates, num_epochs, batch_size):
+def loso(data_eda, feature_vectors_eda, time_sequences_feature_vectors, labels, subjects, classes, learning_rates, num_epochs, batch_size, hidden_state_sizes, num_recurrent_layers, use_grus):
     random_forest_accuracies = []
     rnn_accuracies = []
     crnn_accuracies = []
@@ -83,19 +83,19 @@ def loso(data_eda, feature_vectors_eda, time_sequences_feature_vectors, labels, 
         #Make enum (or comparable) for type of model
 
         print('Running RNN model...')
-        accuracy_rnn = deep_model.run_model('rnn', data_training, labels_training, data_test, labels_test, classes, learning_rates['rnn'], num_epochs['rnn'], batch_size)
+        accuracy_rnn = deep_model.run_model('rnn', data_training, labels_training, data_test, labels_test, classes, learning_rates['rnn'], num_epochs['rnn'], batch_size, hidden_state_sizes['rnn'], num_recurrent_layers['rnn'], use_grus)
         print(f'RNN Model Accuracy: {accuracy_rnn}')
         rnn_accuracies.append(accuracy_rnn)
         print(' ')
 
         print('Running CRNN model...')
-        accuracy_crnn = deep_model.run_model('crnn', data_training, labels_training, data_test, labels_test, classes, learning_rates['crnn'], num_epochs['crnn'], batch_size)
+        accuracy_crnn = deep_model.run_model('crnn', data_training, labels_training, data_test, labels_test, classes, learning_rates['crnn'], num_epochs['crnn'], batch_size, hidden_state_sizes['crnn'], num_recurrent_layers['crnn'], use_grus)
         print(f'CRNN Model Accuracy: {accuracy_crnn}')
         crnn_accuracies.append(accuracy_crnn)
         print(' ')
 
         print('Running Feature RNN model...')
-        accuracy_feature_rnn = deep_model.run_model('feature_rnn', sequence_feature_vectors_training, labels_training, sequence_feature_vectors_test, labels_test, classes, learning_rates['feature_rnn'], num_epochs['feature_rnn'], batch_size)
+        accuracy_feature_rnn = deep_model.run_model('feature_rnn', sequence_feature_vectors_training, labels_training, sequence_feature_vectors_test, labels_test, classes, learning_rates['feature_rnn'], num_epochs['feature_rnn'], batch_size, hidden_state_sizes['feature_rnn'], num_recurrent_layers['rnn'], use_grus)
         print(f'Feature RNN Model Accuracy: {accuracy_feature_rnn}')
         feature_rnn_accuracies.append(accuracy_feature_rnn)
         print(' ')
@@ -121,13 +121,15 @@ def grid_search():
 def main():
     classes = (1, 4)
     sample_duration = round(8.55, 1)
-    do_preprocessing = True
+    do_preprocessing = False
     batch_size = 40
     do_loso_run = True
     do_grid_search = False
     learning_rates = {'rnn': 0.1, 'crnn': 0.1, 'feature_rnn': 0.1, 'cnn': 0.005}
     num_epochs = {'rnn': 100, 'crnn': 100, 'feature_rnn': 100, 'cnn': 25}
-    # implement option to use lstms or grus
+    hidden_state_sizes = {'rnn': 128, 'crnn': 128, 'feature_rnn': 128}
+    num_recurrent_layers = {'rnn': 2, 'crnn': 2, 'feature_rnn': 2}
+    use_grus = False
     # implement verbose output of deep models or not
     # implement option for individual confusion matrices
     # implement option for overall confusion matrices
@@ -139,7 +141,7 @@ def main():
     data_eda, feature_vectors_eda, time_sequences_feature_vectors, labels = get_data(subjects, do_preprocessing, classes, sample_duration)
     
     if do_loso_run:
-        loso(data_eda, feature_vectors_eda, time_sequences_feature_vectors, labels, subjects, classes, learning_rates, num_epochs, batch_size)
+        loso(data_eda, feature_vectors_eda, time_sequences_feature_vectors, labels, subjects, classes, learning_rates, num_epochs, batch_size, hidden_state_sizes, num_recurrent_layers, use_grus)
 
     if do_grid_search:
         grid_search(data_eda, feature_vectors_eda, time_sequences_feature_vectors, labels)
