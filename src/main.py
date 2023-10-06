@@ -52,7 +52,6 @@ def loso(data_eda, feature_vectors_eda, time_sequences_feature_vectors, labels, 
     cnn_accuracies = []
 
     # TODO: add option to save/load models
-    # TODO: add options for batch size, learning rate, etc.
     
     # TODO: add GRU unit for RNN models?
     for index, (proband_data, proband_feature_vectors, proband_sequence_feature_vectors, proband_labels, proband_name) in enumerate(zip(data_eda, feature_vectors_eda, time_sequences_feature_vectors, labels, subjects)):
@@ -66,11 +65,13 @@ def loso(data_eda, feature_vectors_eda, time_sequences_feature_vectors, labels, 
         feature_vectors_training = np.delete(feature_vectors_eda, np.s_[index], 0)
         sequence_feature_vectors_training = np.delete(time_sequences_feature_vectors, np.s_[index], 0)
         labels_training = np.delete(labels, np.s_[index], 0)
-        data_training = data_training.reshape((86 * 40, data_training.shape[2], 3))
-        feature_vectors_training = feature_vectors_training.reshape((86 * 40, 36))
-        sequence_feature_vectors_training = sequence_feature_vectors_training.reshape((86 * 40, sequence_feature_vectors_training.shape[2], 36))
+        # might want to replace 40 with .shape[1], and 3 or 36 with .shape[3]
+        data_training = data_training.reshape((data_training.shape[0] * 40, data_training.shape[2], 3))
+        feature_vectors_training = feature_vectors_training.reshape((feature_vectors_training.shape[0] * 40, 36))
+        sequence_feature_vectors_training = sequence_feature_vectors_training.reshape((sequence_feature_vectors_training.shape[0] * 40, sequence_feature_vectors_training.shape[2], 36))
         labels_training = labels_training.ravel()
 
+        # weglassen? entscheiden, wo geshuffled wird  
         data_training, feature_vectors_training, sequence_feature_vectors_training, labels_training = sklearn.utils.shuffle(data_training, feature_vectors_training, sequence_feature_vectors_training, labels_training)
         data_test, feature_vectors_test, sequence_feature_vectors_test, labels_test = sklearn.utils.shuffle(data_test, feature_vectors_test, sequence_feature_vectors_test, labels_test)
 
@@ -114,8 +115,35 @@ def loso(data_eda, feature_vectors_eda, time_sequences_feature_vectors, labels, 
     print(f'Mean CNN model Accuracy: {sum(cnn_accuracies) / len(cnn_accuracies):.4f}')
 
 
-def grid_search():
-    pass
+def grid_search(data_eda, feature_vectors_eda, time_sequences_feature_vectors, labels, classes):
+    data, feature_vectors_eda, time_sequences_feature_vectors, labels = sklearn.utils.shuffle(data_eda, feature_vectors_eda, time_sequences_feature_vectors, labels)
+    
+    data_train, data_test = np.split(data, [int(data.shape[0]*0.8)])
+    feature_vectors_train, feature_vectors_test = np.split(feature_vectors_eda, [int(data.shape[0]*0.8)])
+    time_sequences_feature_vectors_train, time_sequences_feature_vectors_test = np.split(time_sequences_feature_vectors, [int(data.shape[0]*0.8)])
+    labels_train, labels_test = np.split(labels, [int(data.shape[0]*0.8)])
+
+    data_train = data_train.reshape((data_train.shape[0] * 40, data_train.shape[2], 3))
+    data_test = data_test.reshape((data_test.shape[0] * 40, data_test.shape[2], 3))
+    
+    labels_train = labels_train.ravel()
+    labels_test = labels_test.ravel()
+
+                                         
+    use_grus = [True, False]
+    learning_rates = [0.005, 0.0075, 0.01, 0.025, 0.05, 0.075, 0.1]
+    epochs = [25, 50, 75, 100, 125, 150]
+    hidden_state_sizes = [32, 64, 128, 256]
+    num_recurrent_layers = [1, 2, 3]
+
+    for grus in use_grus:
+        for epoch in epochs:
+            for learning_rate in learning_rates:
+                for hidden_state_size in hidden_state_sizes:
+                    for num_recurrent_layer in num_recurrent_layers:
+                        accuracy = deep_model.run_model('rnn', data_train, labels_train, data_test, labels_test, classes, learning_rate, epoch, 40, hidden_state_size, num_recurrent_layer, grus)
+                        print(f'For RNN model using {"GRU" if grus else "LSTM"}, {num_recurrent_layer} layer(s), {hidden_state_size} hidden state size, {learning_rate} learning rate, {epoch} epochs: accuracy {accuracy:.4f}')
+
 
 
 def main():
@@ -123,18 +151,18 @@ def main():
     sample_duration = round(8.55, 1)
     do_preprocessing = False
     batch_size = 40
-    do_loso_run = True
-    do_grid_search = False
+    do_loso_run = False
+    do_grid_search = True
     learning_rates = {'rnn': 0.1, 'crnn': 0.1, 'feature_rnn': 0.1, 'cnn': 0.005}
     num_epochs = {'rnn': 100, 'crnn': 100, 'feature_rnn': 100, 'cnn': 25}
     hidden_state_sizes = {'rnn': 128, 'crnn': 128, 'feature_rnn': 128}
     num_recurrent_layers = {'rnn': 2, 'crnn': 2, 'feature_rnn': 2}
     use_grus = False
-    # implement verbose output of deep models or not
-    # implement option for individual confusion matrices
-    # implement option for overall confusion matrices
-    # decice what to do with training plots
-    # add list or dict for all deep model options?
+    # TODO: implement verbose output of deep models or not
+    # TODO: implement option for individual confusion matrices
+    # TODO: implement option for overall confusion matrices
+    # TODO: decide what to do with training plots
+    # TODO: add list or dict for all deep model options?
 
     subjects = save_load_data.get_subjects()
     
@@ -144,7 +172,7 @@ def main():
         loso(data_eda, feature_vectors_eda, time_sequences_feature_vectors, labels, subjects, classes, learning_rates, num_epochs, batch_size, hidden_state_sizes, num_recurrent_layers, use_grus)
 
     if do_grid_search:
-        grid_search(data_eda, feature_vectors_eda, time_sequences_feature_vectors, labels)
+        grid_search(data_eda, feature_vectors_eda, time_sequences_feature_vectors, labels, classes)
 
 if __name__ == '__main__':
     # TODO: make .txt file of dependencies and order dependencies correctly
