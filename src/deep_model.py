@@ -32,7 +32,7 @@ def run_evaluation(model, dataloader, device, show_confusion_matrix=False):
     return accuracy_score(labels_evaluation, predictions)
 
 
-def run_model(model, data_train, labels_train, data_test, labels_test, classes, learning_rate, epochs, batch_size, hidden_state_size=1, num_recurrent_layer=1, use_grus=False, show_confusion_matrix=False, show_training_plot=False):
+def run_model(model, data_train, labels_train, data_test, labels_test, classes, learning_rate, epochs, batch_size, hidden_state_size=1, num_recurrent_layer=1, use_grus=False, show_training=False, show_confusion_matrix=False, show_training_plot=False):
     device = 'cuda' if torch.cuda.is_available() else 'cpu'
     print(f'Using {device} device')
 
@@ -57,7 +57,7 @@ def run_model(model, data_train, labels_train, data_test, labels_test, classes, 
         net = deep_learning_architectures.CNN(data_train.shape[1]).to(device)
         data_train = np.transpose(data_train, (0, 2, 1))
         data_test = np.transpose(data_test, (0, 2, 1))
-        
+      
     train_dataloader = deep_learning_utils.make_dataloader(data_train, labels_train_relabeled, batch_size)
     test_dataloader = deep_learning_utils.make_dataloader(data_test, labels_test, batch_size)
 
@@ -95,7 +95,8 @@ def run_model(model, data_train, labels_train, data_test, labels_test, classes, 
 
         train_accuracies.append(train_accuracy)
 
-        print(f'Epoch: {i}, Loss: {loss_epoch:.2f}, Train accuracy: {train_accuracy:.3f}')
+        if show_training:
+            print(f'Epoch: {i}, Loss: {loss_epoch:.2f}, Train accuracy: {train_accuracy:.3f}')
     
     # extend training plot to include loss or deprecate
     if show_training_plot:
