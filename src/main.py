@@ -130,26 +130,24 @@ def grid_search(data_eda, feature_vectors_eda, time_sequences_feature_vectors, l
     labels_test = labels_test.ravel()
 
                                          
-    use_grus = [True, False]
-    learning_rates = [0.005, 0.0075, 0.01, 0.025, 0.05, 0.075, 0.1]
+    learning_rates = [0.01, 0.025, 0.05, 0.075, 0.1]
     epochs = [25, 50, 75, 100, 125, 150]
-    hidden_state_sizes = [32, 64, 128, 256]
+    hidden_state_sizes = [64, 128, 256]
     num_recurrent_layers = [1, 2, 3]
 
-    for grus in use_grus:
-        for epoch in epochs:
-            for learning_rate in learning_rates:
-                for hidden_state_size in hidden_state_sizes:
-                    for num_recurrent_layer in num_recurrent_layers:
-                        accuracy = deep_model.run_model('rnn', data_train, labels_train, data_test, labels_test, classes, learning_rate, epoch, 40, hidden_state_size, num_recurrent_layer, grus)
-                        print(f'For RNN model using {"GRU" if grus else "LSTM"}, {num_recurrent_layer} layer(s), {hidden_state_size} hidden state size, {learning_rate} learning rate, {epoch} epochs: accuracy {accuracy:.4f}')
+    for epoch in epochs:
+        for learning_rate in learning_rates:
+            for hidden_state_size in hidden_state_sizes:
+                for num_recurrent_layer in num_recurrent_layers:
+                    accuracy = deep_model.run_model('rnn', data_train, labels_train, data_test, labels_test, classes, learning_rate, epoch, 40, hidden_state_size, num_recurrent_layer, grus=False)
+                    print(f'For RNN model using {"GRU" if grus else "LSTM"}, {num_recurrent_layer} layer(s), {hidden_state_size} hidden state size, {learning_rate} learning rate, {epoch} epochs: accuracy {accuracy:.4f}')
 
 
 
 def main():
     classes = (1, 4)
-    sample_duration = round(8.55, 1)
-    do_preprocessing = False
+    sample_duration = round(12, 1)
+    do_preprocessing = True
     batch_size = 40
     do_loso_run = False
     do_grid_search = True
