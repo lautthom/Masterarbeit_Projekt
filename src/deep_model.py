@@ -32,9 +32,8 @@ def run_evaluation(model, dataloader, device, show_confusion_matrix=False):
     return accuracy_score(labels_evaluation, predictions)
 
 
-def run_model(model, data_train, labels_train, data_test, labels_test, classes, learning_rate, epochs, batch_size, hidden_state_size=1, num_recurrent_layer=1, use_grus=False, show_training=False, show_confusion_matrix=False, show_training_plot=False):
+def run_model(model, data_train, labels_train, data_test, labels_test, classes, learning_rate, epochs, batch_size, hidden_state_size=1, num_recurrent_layer=1, kernel_size=11, use_grus=False, show_training=False, show_confusion_matrix=False, show_training_plot=False):
     device = 'cuda' if torch.cuda.is_available() else 'cpu'
-    print(f'Using {device} device')
 
     labels_train_copy = labels_train.copy()
     labels_test_copy = labels_test.copy()
@@ -54,7 +53,7 @@ def run_model(model, data_train, labels_train, data_test, labels_test, classes, 
     elif model == 'feature_rnn':
         net = deep_learning_architectures.FeatureRNN(hidden_dim=hidden_state_size, num_layers=num_recurrent_layer, use_grus=use_grus).to(device)
     elif model == 'cnn':
-        net = deep_learning_architectures.CNN(data_train.shape[1]).to(device)
+        net = deep_learning_architectures.CNN(data_train.shape[1], kernel_size=kernel_size).to(device)
         data_train = np.transpose(data_train, (0, 2, 1))
         data_test = np.transpose(data_test, (0, 2, 1))
       
@@ -62,11 +61,11 @@ def run_model(model, data_train, labels_train, data_test, labels_test, classes, 
     test_dataloader = deep_learning_utils.make_dataloader(data_test, labels_test, batch_size)
 
     criterion = nn.BCELoss()
-    optimizer = optim.SGD(net.parameters(), lr=learning_rate)  
+    optimizer = optim.Adam(net.parameters(), lr=0.0001, weight_decay=0.001)  
 
     train_accuracies = []
 
-    for i in range(epochs):
+    for i in range(100):
         loss_epoch = 0
         
         predictions_epoch = []
@@ -90,6 +89,9 @@ def run_model(model, data_train, labels_train, data_test, labels_test, classes, 
                 prediction = 1 if output >= 0.5 else 0
                 predictions_epoch.append(prediction)
                 labels_epoch.append(label.item())
+
+        if i == 50:
+            optimizer = optim.Adam(net.parameters(), lr=0.00001)
  
         train_accuracy = accuracy_score(labels_epoch, predictions_epoch)
 

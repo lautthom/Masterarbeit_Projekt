@@ -19,7 +19,6 @@ def get_cut_out_samples_and_labels(subjects, classes, sample_duration):
 
         data_filtered = data.filter(items=['time', 'gsr'])
 
-        # possible refactoring
         first_class_mask = stimulus_data['label'] == classes[0]
         second_class_mask = stimulus_data['label'] == classes[1]
         total_mask = first_class_mask | second_class_mask
@@ -53,8 +52,8 @@ def get_cut_out_samples_and_labels(subjects, classes, sample_duration):
 
 def _process_eda_signal(sample):
     try: 
-        signals, info = nk.eda_process(sample, sampling_rate=50)
-        return signals['EDA_Clean'].to_numpy(), signals['EDA_Tonic'].to_numpy(), signals['EDA_Phasic'].to_numpy()
+        signals, info = nk.eda_process(sample, sampling_rate=512)
+        return signals['EDA_Clean'], signals['EDA_Tonic'].to_numpy(), signals['EDA_Phasic'].to_numpy()
     except ValueError:  # neurokit throws ValueError, when EDA signal is flat; since a flat signal does not need to be cleaned and has no phasic component, the existing signal will be used as cleaned and tonic signal, a flat line with value 0 will be used as phasic signal.
         return sample, sample, np.zeros([sample.shape[0]])
     
@@ -138,13 +137,13 @@ def compute_time_sequences_feature_vectors(data):
 
 
 def reduce_eda_signal(data):  
-    complete_means = np.empty([0, data.shape[1], data.shape[2]//16, 3])
+    complete_means = np.empty([0, data.shape[1], data.shape[2]//32, 3])
     for proband in data:
-        proband_means = np.empty([0, data.shape[2]//16, 3])
+        proband_means = np.empty([0, data.shape[2]//32, 3])
         for sample in proband:
             means = np.empty([0, 3])
-            for i in range(data.shape[2] // 16):
-                mean = np.mean(sample[i*16:(i+1)*16], axis=0)
+            for i in range(data.shape[2] // 32):
+                mean = np.mean(sample[i*32:(i+1)*32], axis=0)
                 means = np.append(means, np.expand_dims(mean, axis=0), axis=0)
             proband_means = np.append(proband_means, np.expand_dims(means, axis=0), axis=0)
         complete_means = np.append(complete_means, np.expand_dims(proband_means, axis=0), axis=0)
