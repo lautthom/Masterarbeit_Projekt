@@ -32,6 +32,10 @@ def save_time_sequences_feature_vectors(time_sequences_feature_vectors, sample_d
         np.save(file, time_sequences_feature_vectors)
 
 
+def save_results(results_df):
+    results_df.to_csv(pathlib.Path(f'src/../results/loso_results'))
+
+
 def get_subjects():
     subjects_df = pd.read_csv(pathlib.Path('src/../data/raw/PartC-Biosignals/samples.csv'), sep='\t')
     subjects = subjects_df.subject_name.tolist()
