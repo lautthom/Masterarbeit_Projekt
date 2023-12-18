@@ -17,9 +17,9 @@ class EDA_Dataset(Dataset):
         return len(self.data)
     
 
-def make_dataloader(data, labels, batch_size):
+def make_dataloader(data, labels, batch_size, shuffle=True):
     dataset = EDA_Dataset(data, labels)
-    return DataLoader(dataset, batch_size=batch_size, shuffle=True)
+    return DataLoader(dataset, batch_size=batch_size, shuffle=shuffle)
 
 
 def relabel(label_array, classes):

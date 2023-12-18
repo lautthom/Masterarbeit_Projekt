@@ -2,6 +2,33 @@ import torch
 import torch.nn as nn
 
 
+class CNN(nn.Module):
+    def __init__(self, sample_length, kernel_size):
+        super(CNN, self).__init__()
+        self.conv = nn.Conv1d(in_channels=3, out_channels=6, kernel_size=kernel_size, padding='same')
+        self.conv2 = nn.Conv1d(in_channels=6, out_channels=12, kernel_size=kernel_size, padding='same')
+
+        self.pool = nn.MaxPool1d(2)
+
+        self.fc = nn.Linear(sample_length * 6, 512)
+        self.fc2 = nn.Linear(512, 100)
+        self.output = nn.Linear(100, 1)
+
+
+        self.relu = nn.ReLU()
+        self.sigmoid = nn.Sigmoid()
+
+    def forward(self, x, device):
+        x = self.relu(self.conv(x))
+        x = self.relu(self.conv2(x))
+        x = self.pool(x)
+        x = torch.flatten(x, start_dim=1)
+        x = self.relu(self.fc(x))
+        x = self.relu(self.fc2(x))
+        x = self.sigmoid(self.output(x))
+        return x
+    
+
 class RNN(nn.Module):
     def __init__(self, hidden_dim, num_layers, use_grus):
         super(RNN, self).__init__()
@@ -123,29 +150,3 @@ class FeatureRNN(nn.Module):
         return x
     
 
-class CNN(nn.Module):
-    def __init__(self, sample_length, kernel_size):
-        super(CNN, self).__init__()
-        self.conv = nn.Conv1d(in_channels=3, out_channels=6, kernel_size=kernel_size, padding='same')
-        self.conv2 = nn.Conv1d(in_channels=6, out_channels=12, kernel_size=kernel_size, padding='same')
-
-        self.pool =nn.MaxPool1d(2)
-
-        self.fc = nn.Linear(sample_length * 6, 512)
-        self.fc2 = nn.Linear(512, 100)
-        self.output = nn.Linear(100, 1)
-
-
-        self.relu = nn.ReLU()
-        self.sigmoid = nn.Sigmoid()
-
-    def forward(self, x, device):
-        x = self.relu(self.conv(x))
-        x = self.relu(self.conv2(x))
-        x = self.pool(x)
-        x = torch.flatten(x, start_dim=1)
-        x = self.relu(self.fc(x))
-        x = self.relu(self.fc2(x))
-        x = self.sigmoid(self.output(x))
-        return x
-    

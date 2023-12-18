@@ -125,11 +125,7 @@ def compute_time_sequences_feature_vectors(data):
         for sample in proband:
             features_samples = np.empty([0, 36])
             for i in range(number_feature_vectors):
-                #features_time_sequence = _compute_statistical_descriptors(pd.Series(sample[i*512 : (i+1)*512]))
                 features_time_sequence = _compute_feature_vector(sample[i*512 : (i+1)*512])
-
-
-
                 features_samples = np.append(features_samples, features_time_sequence, axis=0)
             probands_features = np.append(probands_features, np.expand_dims(features_samples, axis=0), axis=0)
         complete_time_sequence_features = np.append(complete_time_sequence_features, np.expand_dims(probands_features, axis=0), axis=0)
