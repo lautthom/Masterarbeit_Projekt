@@ -74,8 +74,6 @@ def _compute_feature_vector(sample):
     clean_features = _compute_statistical_descriptors(pd.Series(sample[:, 0]))
     tonic_features = _compute_statistical_descriptors(pd.Series(sample[:, 1]))
     phasic_features = _compute_statistical_descriptors(pd.Series(sample[:, 2]))
-    # mean_peak_amplitude = np.array([[info['SCR_Amplitude'].mean()]])
-    # feature_vector = np.concatenate((clean_features, tonic_features, phasic_features, mean_peak_amplitude), axis=1)
     feature_vector = np.concatenate((clean_features, tonic_features, phasic_features), axis=1)
     return feature_vector
 
@@ -85,24 +83,16 @@ def _compute_statistical_descriptors(signal):
     min = signal.min()
     mean = signal.mean()
     std = signal.std()
-    var = signal.var()  # necessary?
+    var = signal.var() 
     rms = math.sqrt(sum(signal**2) / len(signal))
-    # power ?  spectral power?
-    # peak ?  SCR_Peaks/SCR_Amplitude according to Neurokit info? applicable for several peaks? highest peaks? peak count? mean peak amplitude? sum peak amplitude?
     p2p = max - min
     skew = signal.skew()
     kurtosis = signal.kurtosis()
-    # crest_factor ?  mutliple peaks?
-    # form_factor ?
-    # pulse_indicator ? not relevant for eda/wrong for eda
-    # var_second_moment ? second moment is scalar, how is variation(?) calculated? Also, rms square root of second moment?
-    # variation_second_moment ? what is variation? second moment scalar?
-    # std_second_moment ? scalar? redundant due to var_second_moment?
 
     first_diff = signal.diff()
     mean_first_diff = first_diff.mean()
     mean_abs_first_diff = first_diff.abs().mean()
-    mean_abs_second_diff = first_diff.diff().abs().mean()  # without abs() ?
+    mean_abs_second_diff = first_diff.diff().abs().mean() 
     return np.array([[max, min, mean, std, var, rms, p2p, skew, kurtosis, mean_first_diff, mean_abs_first_diff, mean_abs_second_diff]])
 
 

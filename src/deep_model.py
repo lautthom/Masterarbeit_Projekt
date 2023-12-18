@@ -29,7 +29,7 @@ def run_evaluation(model, dataloader, device, show_confusion_matrix=False):
     return accuracy_score(labels, predictions), outputs_array
 
 
-def run_model(model_type, data_train, labels_train, data_test, labels_test, classes, learning_rate, epochs, batch_size, hidden_state_size=1, num_recurrent_layer=1, kernel_size=11, use_grus=False, show_training=False, show_confusion_matrix=False, show_training_plot=False, finetuning_data=None, finetuning_labels=None):
+def run_model(model_type, data_train, labels_train, data_test, labels_test, classes, epochs, batch_size, hidden_state_size=1, num_recurrent_layer=1, kernel_size=11, use_grus=False, show_training=False, show_confusion_matrix=False, show_training_plot=False, finetuning_data=None, finetuning_labels=None):
     device = 'cuda' if torch.cuda.is_available() else 'cpu'
 
     labels_train_copy = labels_train.copy()
@@ -75,8 +75,7 @@ def run_model(model_type, data_train, labels_train, data_test, labels_test, clas
 
     for i in range(epochs):
         loss_epoch = 0
-
-        #delete unnecessary lists        
+        
         predictions_epoch = []
         labels_epoch = []
 
@@ -94,7 +93,6 @@ def run_model(model_type, data_train, labels_train, data_test, labels_test, clas
 
             loss_epoch += loss.item()
 
-            # shorten with np.where()
             for output, label in zip(outputs, labels):
                 prediction = 1 if output >= 0.5 else 0
                 predictions_epoch.append(prediction)
@@ -110,9 +108,7 @@ def run_model(model_type, data_train, labels_train, data_test, labels_test, clas
     optimizer = optim.Adam(model.parameters(), lr=0.00001, weight_decay=0.001)
 
     for i in range(epochs):
-        loss_epoch = 0
-
-        #delete unnecessary lists        
+        loss_epoch = 0       
         predictions_epoch = []
         labels_epoch = []
 
@@ -130,7 +126,6 @@ def run_model(model_type, data_train, labels_train, data_test, labels_test, clas
 
             loss_epoch += loss.item() 
 
-            #shorten with np.array()
             for output, label in zip(outputs, labels):
                 prediction = 1 if output >= 0.5 else 0
                 predictions_epoch.append(prediction)
@@ -143,7 +138,6 @@ def run_model(model_type, data_train, labels_train, data_test, labels_test, clas
         if show_training:
             print(f'Epoch: {i}, Loss: {loss_epoch:.2f}, Train accuracy: {train_accuracy:.3f}')
     
-    # extend training plot to include loss or deprecate
     if show_training_plot:
         deep_learning_utils.make_training_plot(train_accuracies)
     

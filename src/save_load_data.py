@@ -11,12 +11,6 @@ def save_samples(samples, sample_duration, classes):
         np.save(file, samples)
 
 
-def save_samples_normalized(samples, sample_duration, classes):
-    seconds, decimal = divmod(int(sample_duration*10), 10)
-    with open(pathlib.Path(f'src/../data/processed/eda_samples_normalized_{seconds}_{decimal}s_classes_{min(classes)}_{max(classes)}.npy'), 'wb') as file:
-        np.save(file, samples)
-
-
 def save_labels(labels,classes):
     with open(pathlib.Path(f'src/../data/processed/labels_classes_{min(classes)}_{max(classes)}.npy'), 'wb') as file:
         np.save(file, labels)
@@ -48,10 +42,6 @@ def load_samples(sample_duration, classes):
     seconds, decimal = divmod(int(sample_duration*10), 10)
     return np.load(pathlib.Path(f'src/../data/processed/eda_samples_{seconds}_{decimal}s_classes_{min(classes)}_{max(classes)}.npy'))
 
-
-def load_samples_normalized(sample_duration, classes):
-    seconds, decimal = divmod(int(sample_duration*10), 10)
-    return np.load(pathlib.Path(f'src/../data/processed/eda_samples_normalized_{seconds}_{decimal}s_classes_{min(classes)}_{max(classes)}.npy'))
 
 def load_labels(classes):
     return np.load(pathlib.Path(f'src/../data/processed/labels_classes_{min(classes)}_{max(classes)}.npy'))
